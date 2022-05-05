@@ -42,3 +42,4 @@ if __name__ == '__main__':
     ratings_test_df, ratings_train_df = test_train_split()
     print(ratings_test_df.head())
     print(ratings_train_df.head())
+
