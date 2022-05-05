@@ -22,11 +22,12 @@ def test_train_split():
     return ratings_test_df, ratings_train_df
 
 
-# Q3
+# Q3 A
 def rmse(predictions, targets):
     return np.sqrt(((np.array(predictions) - np.array(targets)) ** 2).mean())
 
 
+# Q3 B
 def accuracy(predictions, targets):
     new_predictions = np.concatenate(predictions, axis=0)
     new_targets = np.concatenate(targets, axis=0)
