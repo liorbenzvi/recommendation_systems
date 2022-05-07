@@ -66,11 +66,14 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
         y_pred = []
         for line in (validate[['user_id', 'business_id']]).iterrows():
             curr_user_id, curr_item_id = line[1]
-            user_idx = user_id_map[curr_user_id]
-            item_idx = items_id_map[curr_item_id]
-            curr_bu = bu[user_idx]
-            curr_bi = bi[item_idx]
-            y_pred.append(pu[user_idx].dot(qi[item_idx]) + curr_bu + curr_bi)
+            user_idx = user_id_map.get(curr_user_id, None)
+            item_idx = items_id_map.get(curr_item_id, None)
+            if user_idx is None or item_idx is None:
+                y_pred.append(m)
+            else:
+                curr_bu = bu[user_idx]
+                curr_bi = bi[item_idx]
+                y_pred.append(pu[user_idx].dot(qi[item_idx]) + curr_bu + curr_bi)
         rmse_new = rmse(y_pred, validate['stars'])
         if rmse_new > rmse_old:
             return old_pu, old_qi, old_bu, old_bi
@@ -110,5 +113,8 @@ if __name__ == '__main__':
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
     ratings_test_df, ratings_train_df = test_train_split()
     gamma, lambda_parm = 0.05, 0.05
-    train_base_model(100, ratings_train_df, gamma, lambda_parm)
-    print(ratings_test_df.head())
+    bi, bu, pu, qi = train_base_model(100, ratings_train_df, gamma, lambda_parm)
+    print(bi.head())
+    print(bu.head())
+    print(pu.head())
+    print(qi.head())
