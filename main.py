@@ -38,7 +38,6 @@ def accuracy(predictions, targets):
     return correct / total
 
 
-
 # Q4
 def train_base_model(k, ratings_train_df, gamma, lambda_parm):
     train, validate = \
@@ -47,42 +46,47 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
 
     m = train['stars'].mean()
     num_of_users = len(np.unique(train["user_id"]))
-    user_id_map = dict(zip(np.unique(train["user_id"]), np.arange(0,num_of_users)))
+    user_id_map = dict(zip(np.unique(train["user_id"]), np.arange(0, num_of_users)))
     num_of_items = len(np.unique(train["business_id"]))
     items_id_map = dict(zip(np.unique(train["business_id"]), np.arange(0, num_of_items)))
 
-
-    pu = np.random.uniform(low=-1, high=1, size=(num_of_users,k)) *0.00005
-    qi = np.random.uniform(low=-1, high=1, size=(k,num_of_items)) *0.00005
+    pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * 0.00005
+    qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * 0.00005
     ## this is an hyper parmater that used for giving extra info about the user
     ## for ex: is this user usually give high scores?  is he memurmar that give lower score for everything?
-    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) *0.00005
+    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) * 0.00005
     ## same for items - is it item that usually get high score, or low?
-    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) *0.00005
+    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) * 0.00005
 
-    for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
-        curr_user_id,curr_item_id, rui = line[1]
-        user_idx = user_id_map[curr_user_id]
-        item_idx = items_id_map[curr_item_id]
-        curr_bu = bu[user_idx]
-        curr_bi = bi[item_idx]
-        curr_pu = pu[user_idx,]
-        curr_qi = qi[:,item_idx]
-        eui = rui - m \
-              - curr_bi - curr_bu \
-              - curr_pu.dot(curr_qi)
-        bu[user_idx] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
-        bi[item_idx] = curr_bi + gamma * (eui - lambda_parm * curr_bi)
-        pu[user_idx] = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
-        qi[:,item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
-        res = curr_pu.dot(curr_qi)
+    rmse_old = sys.maxsize
+    while True:
+        for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
+            curr_user_id, curr_item_id, rui = line[1]
+            user_idx = user_id_map[curr_user_id]
+            item_idx = items_id_map[curr_item_id]
+            curr_bu = bu[user_idx]
+            curr_bi = bi[item_idx]
+            curr_pu = pu[user_idx,]
+            curr_qi = qi[:, item_idx]
+            eui = rui - m \
+                  - curr_bi - curr_bu \
+                  - curr_pu.dot(curr_qi)
+            bu[user_idx] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
+            bi[item_idx] = curr_bi + gamma * (eui - lambda_parm * curr_bi)
+            pu[user_idx] = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
+            qi[:, item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
 
-    ## where do I use K ?
-    ### ????
-    # rmse_old = sys.maxsize
-    # rmse_new = rmse(y_pred, validate['stars'])
-    # if (rmse_new < rmse_old):
-
+        y_pred = []
+        for line in (validate[['user_id', 'business_id']]).iterrows():
+            curr_user_id, curr_item_id = line[1]
+            user_idx = user_id_map[curr_user_id]
+            item_idx = items_id_map[curr_item_id]
+            y_pred.append(pu[user_idx].dot(qi[item_idx]))
+        rmse_new = rmse(y_pred, validate['stars'])
+        if rmse_new > rmse_old:
+            break
+        else:
+            rmse_old = rmse_new
 
 
 if __name__ == '__main__':
