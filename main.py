@@ -38,6 +38,7 @@ def accuracy(predictions, targets):
     return correct / total
 
 
+
 # Q4
 def train_base_model(k, ratings_train_df, gamma, lambda_parm):
     train, validate = \
@@ -45,8 +46,10 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
                  [int(.8 * len(ratings_train_df))])
 
     m = train['stars'].mean()
-    num_of_users = len(np.unique(ratings_train_df["user_id"]))
-    num_of_items = len(np.unique(ratings_train_df["business_id"]))
+    num_of_users = len(np.unique(train["user_id"]))
+    user_id_map = dict(zip(np.unique(train["user_id"]), np.arange(0,num_of_users)))
+    num_of_items = len(np.unique(train["business_id"]))
+    items_id_map = dict(zip(np.unique(train["business_id"]), np.arange(0, num_of_items)))
 
 
     pu = np.random.uniform(low=-1, high=1, size=(num_of_users,k)) *0.00005
@@ -59,14 +62,16 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
 
     for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
         curr_user_id,curr_item_id, rui = line[1]
-        curr_bu = bu[curr_user_id]
-        curr_bi = bi[curr_item_id]
-        curr_pu = pu[curr_user_id]
-        curr_qi = qi[curr_item_id]
+        user_idx = user_id_map[curr_user_id]
+        item_idx = items_id_map[curr_item_id]
+        curr_bu = bu[user_idx]
+        curr_bi = bi[item_idx]
+        curr_pu = pu[user_idx,]
+        curr_qi = qi[:,item_idx]
         eui = rui - m \
               - curr_bi - curr_bu \
-              - curr_pu - curr_qi
-        bu = curr_bu + gamma * (eui - lambda_parm * curr_bu)
+              - curr_pu * curr_qi
+        bu[user_id_map[curr_user_id]] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
         bi = curr_bi + gamma * (eui - lambda_parm * curr_bi)
         qi = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
         pu = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
