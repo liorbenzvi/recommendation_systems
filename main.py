@@ -63,7 +63,7 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
         curr_bu = bu[curr_user_id]
         curr_bi = bi[curr_item_id]
         curr_pu = pu[curr_user_id]
-        curr_qi qi[curr_item_id]
+        curr_qi = qi[curr_item_id]
         eui = rui - m \
               - curr_bi - curr_bu \
               - curr_pu - curr_qi
