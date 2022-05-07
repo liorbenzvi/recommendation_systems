@@ -73,7 +73,7 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
             else:
                 curr_bu = bu[user_idx]
                 curr_bi = bi[item_idx]
-                y_pred.append(pu[user_idx].dot(qi[item_idx]) + curr_bu + curr_bi)
+                y_pred.append(pu[user_idx].dot(qi[:,item_idx]) + curr_bu + curr_bi)
         rmse_new = rmse(y_pred, validate['stars'])
         if rmse_new > rmse_old:
             return old_pu, old_qi, old_bu, old_bi
