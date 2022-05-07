@@ -114,7 +114,7 @@ if __name__ == '__main__':
     ratings_test_df, ratings_train_df = test_train_split()
     gamma, lambda_parm = 0.05, 0.05
     bi, bu, pu, qi = train_base_model(100, ratings_train_df, gamma, lambda_parm)
-    print(bi.head())
-    print(bu.head())
-    print(pu.head())
-    print(qi.head())
+    print(bi)
+    print(bu)
+    print(pu)
+    print(qi)
