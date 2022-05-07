@@ -50,16 +50,15 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
 
 
     pu = np.random.uniform(low=-1, high=1, size=(num_of_users,k)) *0.00005
-    qi = np.random.uniform(low=-1, high=1, size=(num_of_items,k)) *0.00005
+    qi = np.random.uniform(low=-1, high=1, size=(k,num_of_items)) *0.00005
     ## this is an hyper parmater that used for giving extra info about the user
     ## for ex: is this user usually give high scores?  is he memurmar that give lower score for everything?
     bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) *0.00005
     ## same for items - is it item that usually get high score, or low?
     bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) *0.00005
 
-    for rui in train['stars']:
-        curr_user_id = rui["user_id"]
-        curr_item_id = rui["business_id"]
+    for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
+        curr_user_id,curr_item_id, rui = line[1]
         curr_bu = bu[curr_user_id]
         curr_bi = bi[curr_item_id]
         curr_pu = pu[curr_user_id]
