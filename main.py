@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 
-ratings_file_name = "yelp_data/Yelp_ratings.csv"
+ratings_file_name = "yelp_data/Yelp_ratings_DEMO.csv"
 
 
 # Q1
@@ -45,21 +45,39 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
                  [int(.8 * len(ratings_train_df))])
 
     m = train['stars'].mean()
-    bu, bi, pu, qi = random.choice((-1, 1)) * 0.00005
+    num_of_users = len(np.unique(ratings_train_df["user_id"]))
+    num_of_items = len(np.unique(ratings_train_df["business_id"]))
+
+
+    pu = np.random.uniform(low=-1, high=1, size=(num_of_users,k)) *0.00005
+    qi = np.random.uniform(low=-1, high=1, size=(num_of_items,k)) *0.00005
+    ## this is an hyper parmater that used for giving extra info about the user
+    ## for ex: is this user usually give high scores?  is he memurmar that give lower score for everything?
+    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) *0.00005
+    ## same for items - is it item that usually get high score, or low?
+    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) *0.00005
 
     for rui in train['stars']:
-        eui = rui - m - bi - bu - pu - qi
-        bu = bu + gamma * (eui - lambda_parm * bu)
-        bi = bi + gamma * (eui - lambda_parm * bi)
-        qi = qi + gamma * (eui * pu - lambda_parm * qi)
-        pu = pu + gamma * (eui * qi - lambda_parm * pu)
-        res = qi * pu
+        curr_user_id = rui["user_id"]
+        curr_item_id = rui["business_id"]
+        curr_bu = bu[curr_user_id]
+        curr_bi = bi[curr_item_id]
+        curr_pu = pu[curr_user_id]
+        curr_qi qi[curr_item_id]
+        eui = rui - m \
+              - curr_bi - curr_bu \
+              - curr_pu - curr_qi
+        bu = curr_bu + gamma * (eui - lambda_parm * curr_bu)
+        bi = curr_bi + gamma * (eui - lambda_parm * curr_bi)
+        qi = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
+        pu = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
+        res = curr_qi * curr_pu
 
     ## where do I use K ?
     ### ????
-    rmse_old = sys.maxsize
-    rmse_new = rmse(y_pred, validate['stars'])
-    if (rmse_new < rmse_old):
+    # rmse_old = sys.maxsize
+    # rmse_new = rmse(y_pred, validate['stars'])
+    # if (rmse_new < rmse_old):
 
 
 
