@@ -59,34 +59,49 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
     bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) * 0.00005
 
     rmse_old = sys.maxsize
+    old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
     while True:
-        for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
-            curr_user_id, curr_item_id, rui = line[1]
-            user_idx = user_id_map[curr_user_id]
-            item_idx = items_id_map[curr_item_id]
-            curr_bu = bu[user_idx]
-            curr_bi = bi[item_idx]
-            curr_pu = pu[user_idx,]
-            curr_qi = qi[:, item_idx]
-            eui = rui - m \
-                  - curr_bi - curr_bu \
-                  - curr_pu.dot(curr_qi)
-            bu[user_idx] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
-            bi[item_idx] = curr_bi + gamma * (eui - lambda_parm * curr_bi)
-            pu[user_idx] = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
-            qi[:, item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
+        calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, user_id_map)
 
         y_pred = []
         for line in (validate[['user_id', 'business_id']]).iterrows():
             curr_user_id, curr_item_id = line[1]
             user_idx = user_id_map[curr_user_id]
             item_idx = items_id_map[curr_item_id]
-            y_pred.append(pu[user_idx].dot(qi[item_idx]))
+            curr_bu = bu[user_idx]
+            curr_bi = bi[item_idx]
+            y_pred.append(pu[user_idx].dot(qi[item_idx]) + curr_bu + curr_bi)
         rmse_new = rmse(y_pred, validate['stars'])
         if rmse_new > rmse_old:
-            break
-        else:
-            rmse_old = rmse_new
+            return old_pu, old_qi, old_bu, old_bi
+        rmse_old = rmse_new
+        old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
+
+
+def create_copy(bi, bu, pu, qi):
+    old_pu = pu.copy()
+    old_qi = qi.copy()
+    old_bu = bu.copy()
+    old_bi = bi.copy()
+    return old_bi, old_bu, old_pu, old_qi
+
+
+def calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, user_id_map):
+    for line in (train[['user_id', 'business_id', 'stars']]).iterrows():
+        curr_user_id, curr_item_id, rui = line[1]
+        user_idx = user_id_map[curr_user_id]
+        item_idx = items_id_map[curr_item_id]
+        curr_bu = bu[user_idx]
+        curr_bi = bi[item_idx]
+        curr_pu = pu[user_idx,]
+        curr_qi = qi[:, item_idx]
+        eui = rui - m \
+              - curr_bi - curr_bu \
+              - curr_pu.dot(curr_qi)
+        bu[user_idx] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
+        bi[item_idx] = curr_bi + gamma * (eui - lambda_parm * curr_bi)
+        pu[user_idx] = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
+        qi[:, item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
 
 
 if __name__ == '__main__':
