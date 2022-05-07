@@ -70,12 +70,12 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
         curr_qi = qi[:,item_idx]
         eui = rui - m \
               - curr_bi - curr_bu \
-              - curr_pu * curr_qi
-        bu[user_id_map[curr_user_id]] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
-        bi = curr_bi + gamma * (eui - lambda_parm * curr_bi)
-        qi = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
-        pu = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
-        res = curr_qi * curr_pu
+              - curr_pu.dot(curr_qi)
+        bu[user_idx] = curr_bu + gamma * (eui - lambda_parm * curr_bu)
+        bi[item_idx] = curr_bi + gamma * (eui - lambda_parm * curr_bi)
+        pu[user_idx] = curr_pu + gamma * (eui * curr_qi - lambda_parm * curr_pu)
+        qi[:,item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
+        res = curr_pu.dot(curr_qi)
 
     ## where do I use K ?
     ### ????
