@@ -50,13 +50,13 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
     num_of_items = len(np.unique(train["business_id"]))
     items_id_map = dict(zip(np.unique(train["business_id"]), np.arange(0, num_of_items)))
 
-    pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * 0.00005
-    qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * 0.00005
+    pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * 0.000005
+    qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * 0.000005
     ## this is an hyper parmater that used for giving extra info about the user
     ## for ex: is this user usually give high scores?  is he memurmar that give lower score for everything?
-    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) * 0.00005
+    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) * 0.000005
     ## same for items - is it item that usually get high score, or low?
-    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) * 0.00005
+    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) * 0.000005
 
     rmse_old = sys.maxsize
     old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
@@ -76,7 +76,7 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
                 y_pred.append(pu[user_idx].dot(qi[:,item_idx]) + curr_bu + curr_bi)
         rmse_new = rmse(y_pred, validate['stars'])
         print("calc rmse: " + str(rmse_new))
-        if rmse_new - rmse_old > 0.5:
+        if rmse_new > rmse_old:
             return old_pu, old_qi, old_bu, old_bi, rmse_old
         rmse_old = rmse_new
         old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
