@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 
-ratings_file_name = "yelp_data/Yelp_ratings.csv"
+ratings_file_name = "yelp_data/Yelp_ratings_DEMO.csv"
 
 
 # Q1
@@ -76,7 +76,7 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
                 y_pred.append(pu[user_idx].dot(qi[:,item_idx]) + curr_bu + curr_bi)
         rmse_new = rmse(y_pred, validate['stars'])
         print("calc rmse: " + str(rmse_new))
-        if rmse_new > rmse_old:
+        if rmse_new - rmse_old > 0.5:
             return old_pu, old_qi, old_bu, old_bi, rmse_old
         rmse_old = rmse_new
         old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     # ratings_df = pd.read_csv("yelp_data/Yelp_ratings.csv", encoding="UTF-8")
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
     ratings_test_df, ratings_train_df = test_train_split()
-    gamma, lambda_parm = 0.04, 0.04
-    bi, bu, pu, qi, rmse = train_base_model(100, ratings_train_df, gamma, lambda_parm)
+    gamma, lambda_parm = 0.03, 0.03
+    bi, bu, pu, qi, rmse = train_base_model(150, ratings_train_df, gamma, lambda_parm)
     print("Final rmse is: " + str(rmse))
 
