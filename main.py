@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     ratings_test_df, ratings_train_df = test_train_split()
     gamma, lambda_parm = 0.02, 0.02
-    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, 0.00005)
+    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, 0.0005)
     # print("Final RMSE is: " + str(rmse))
 
 
@@ -200,7 +200,19 @@ if __name__ == '__main__':
     # i = 0.01
     # while i < 1:
     #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, i, i, 0.0005)
+    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, i, 0.02, 0.0005)
+    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
+    #     if rmse < best_rmse:
+    #         best_i = i
+    #         best_rmse = rmse
+    #     i += 0.005
+    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
+
+    # choose lambda values:
+    # i = 0.01
+    # while i < 1:
+    #     print("\n" + str(i))
+    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, 0.02, i, 0.0005)
     #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
     #     if rmse < best_rmse:
     #         best_i = i
