@@ -39,7 +39,7 @@ def accuracy(predictions, targets):
 
 
 # Q4
-def train_base_model(k, ratings_train_df, gamma, lambda_parm):
+def train_base_model(k, ratings_train_df, gamma, lambda_parm, value):
     train, validate = \
         np.split(ratings_train_df.sample(frac=1, random_state=42),
                  [int(.8 * len(ratings_train_df))])
@@ -47,19 +47,20 @@ def train_base_model(k, ratings_train_df, gamma, lambda_parm):
     m = train['stars'].mean()
     items_id_map, num_of_items, num_of_users, user_id_map = get_index_maps(train)
 
-    pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * 0.005
-    qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * 0.005
+    pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * value
+    qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * value
     ## this is an hyper parmater that used for giving extra info about the user
-    bu = np.random.uniform(low=-1, high=1, size=(num_of_users,)) * 0.005
+    bu = np.random.uniform(low=m, high=m, size=(num_of_users,))
     ## same for items - is it item that usually get high score, or low?
-    bi = np.random.uniform(low=-1, high=1, size=(num_of_items,)) * 0.005
+    bi = np.random.uniform(low=m, high=m, size=(num_of_items,))
 
     rmse_old = sys.maxsize
     old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
     while True:
         calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, user_id_map)
         prediction = predict_mf(bi, bu, items_id_map, m, pu, qi, user_id_map, validate)
-        rmse_new = rmse(prediction, validate['stars'])
+        # rmse_new = rmse(prediction, validate['stars'])
+        rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
         print("calc rmse: " + str(rmse_new))
         if rmse_new > rmse_old:
             return old_pu, old_qi, old_bu, old_bi, rmse_old, user_id_map, items_id_map
@@ -163,7 +164,50 @@ if __name__ == '__main__':
     # business_df = pd.read_csv("yelp_data/yelp_business.csv", encoding="UTF-8")
     # ratings_df = pd.read_csv("yelp_data/Yelp_ratings.csv", encoding="UTF-8")
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
+
     ratings_test_df, ratings_train_df = test_train_split()
-    gamma, lambda_parm = 0.03, 0.03
-    bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm)
-    print("Final RMSE is: " + str(rmse))
+    gamma, lambda_parm = 0.02, 0.02
+    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, 0.00005)
+    # print("Final RMSE is: " + str(rmse))
+
+
+    best_i = 0
+    best_rmse = 20000000
+
+    # choose initialization values:
+    # i = 0.0005
+    # while i < 0.5:
+    #     print("\n" + str(i))
+    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, i)
+    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
+    #     if rmse < best_rmse:
+    #         best_i = i
+    #         best_rmse = rmse
+    #     i += 0.0005
+    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
+
+    # choose k:
+    for i in range(5, 2000, 5):
+        print("\n" + str(i))
+        bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(i, ratings_train_df, gamma, lambda_parm, 0.0005)
+        print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
+        if rmse < best_rmse:
+            best_i = i
+            best_rmse = rmse
+    print("\nBest rmse is for i: " + str(best_i) + ", with rmse: " + str(best_rmse))
+
+    # choose gamma values:
+    # i = 0.01
+    # while i < 1:
+    #     print("\n" + str(i))
+    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, i, i, 0.0005)
+    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
+    #     if rmse < best_rmse:
+    #         best_i = i
+    #         best_rmse = rmse
+    #     i += 0.005
+    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
+
+
+
+
