@@ -39,10 +39,8 @@ def rmse(predictions, targets):
 
 # Q3 B
 def accuracy(predictions, targets):
-    new_predictions = np.concatenate(predictions, axis=0)
-    new_targets = np.concatenate(targets, axis=0)
-    total = len(new_predictions)
-    correct = len([i for i, j in zip(new_predictions, new_targets) if i == j])
+    total = len(predictions)
+    correct = len([i for i, j in zip(predictions, targets.values) if i == j])
     return correct / total
 
 
@@ -51,28 +49,34 @@ def train_base_model(k, ratings_train_df, gamma, lambda_param, value):
     train, validate = \
         np.split(ratings_train_df.sample(frac=1, random_state=42),
                  [int(.8 * len(ratings_train_df))])
+    target = validate['stars']
     m = train['stars'].mean()
     print('Rating Average is: ' + str(m))
     items_id_map, num_of_items, num_of_users, user_id_map = get_index_maps(train)
 
     pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * value
     qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * value
-
     bu = np.full(num_of_users, m)
     bi = np.full(num_of_items, m)
 
     rmse_old = sys.maxsize
-    old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
+    acc_old = 0
+    old_prediction = []
+    prediction = []
+    old_bi, old_bu, old_pu, old_qi, prediction = create_copy(bi, bu, pu, qi, prediction)
+    i = 0
     while True:
         calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_param, m, pu, qi, train, user_id_map)
         prediction = predict_mf(bi, bu, items_id_map, m, pu, qi, user_id_map, validate)
-        # rmse_new = rmse(prediction, validate['stars'])
-        rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
-        print("calc rmse: " + str(rmse_new))
+        rmse_new = rmse(prediction, target)
+        acc_new = accuracy(prediction, target)
+        print("Iteration number: " + str(i) + ", with RMSE: " + str(rmse_new))
         if rmse_new > rmse_old:
-            return old_pu, old_qi, old_bu, old_bi, rmse_old, user_id_map, items_id_map
+            return old_pu, old_qi, old_bu, old_bi, rmse_old, user_id_map, items_id_map, old_prediction, acc_old
         rmse_old = rmse_new
-        old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
+        acc_old = acc_new
+        old_bi, old_bu, old_pu, old_qi, old_prediction = create_copy(bi, bu, pu, qi, prediction)
+        i += 1
 
 
 def get_index_maps(train):
@@ -92,26 +96,36 @@ def predict_mf(bi, bu, items_id_map, m, pu, qi, user_id_map, df):
     return prediction
 
 
+def round_prediction(pred):
+    rounded = round(pred)
+    if rounded > 5:
+        return 5
+    if rounded < 1:
+        return 1
+    return rounded
+
+
 def predict_single_user_business_mf(bi, bu, curr_item_id, curr_user_id, items_id_map, m, pu, qi, user_id_map):
     user_idx = user_id_map.get(curr_user_id, None)
     item_idx = items_id_map.get(curr_item_id, None)
     if user_idx is None and not (item_idx is None):
-        return pu.mean(axis=0).dot(qi[:, item_idx])
+        return round_prediction(pu.mean(axis=0).dot(qi[:, item_idx]))
     if not (user_idx is None) and item_idx is None:
-        return pu[user_idx].dot(qi.mean(axis=1))
+        return round_prediction(pu[user_idx].dot(qi.mean(axis=1)))
     if user_idx is None and item_idx is None:
-        return m
+        return round_prediction(m)
     curr_bu = bu[user_idx]
     curr_bi = bi[item_idx]
-    return pu[user_idx].dot(qi[:, item_idx]) + curr_bu + curr_bi
+    return round_prediction(pu[user_idx].dot(qi[:, item_idx]) + curr_bu + curr_bi)
 
 
-def create_copy(bi, bu, pu, qi):
+def create_copy(bi, bu, pu, qi, prediction):
     old_pu = pu.copy()
     old_qi = qi.copy()
     old_bu = bu.copy()
     old_bi = bi.copy()
-    return old_bi, old_bu, old_pu, old_qi
+    old_prediction = prediction.copy()
+    return old_bi, old_bu, old_pu, old_qi, old_prediction
 
 
 def calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, user_id_map):
@@ -191,11 +205,13 @@ if __name__ == '__main__':
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
 
     ratings_test_df, ratings_train_df = test_train_split()
-    bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
+    bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
+        train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
+    print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
+    print("Final prediction on validation set histogram: ")
+    print({x: prediction.count(x) for x in prediction})
 
     # pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
     # qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
     # p_q_visualization(pu, qi)
-
-
