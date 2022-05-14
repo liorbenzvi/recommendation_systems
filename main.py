@@ -190,25 +190,12 @@ if __name__ == '__main__':
     # ratings_df = pd.read_csv("yelp_data/Yelp_ratings.csv", encoding="UTF-8")
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
 
-    # ratings_test_df, ratings_train_df = test_train_split()
-    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.025, 0.0005)
-    # print("Final RMSE is: " + str(rmse))
+    ratings_test_df, ratings_train_df = test_train_split()
+    bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
+    print("Final RMSE is: " + str(rmse))
 
-    pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
-    qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
-    p_q_visualization(pu, qi)
+    # pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
+    # qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
+    # p_q_visualization(pu, qi)
 
-    # best_i = 0
-    # best_rmse = 20000000
-    #
-    # # choose lambda values:
-    # i = 0.01
-    # while i < 1:
-    #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, i, 0.0005)
-    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
-    #     if rmse < best_rmse:
-    #         best_i = i
-    #         best_rmse = rmse
-    #     i += 0.005
-    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
+
