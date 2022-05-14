@@ -2,6 +2,14 @@ import sys
 import pandas as pd
 import numpy as np
 import random
+import time
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import seaborn as sns
 
 ratings_file_name = "yelp_data/Yelp_ratings_DEMO.csv"
 
@@ -39,25 +47,24 @@ def accuracy(predictions, targets):
 
 
 # Q4
-def train_base_model(k, ratings_train_df, gamma, lambda_parm, value):
+def train_base_model(k, ratings_train_df, gamma, lambda_param, value):
     train, validate = \
         np.split(ratings_train_df.sample(frac=1, random_state=42),
                  [int(.8 * len(ratings_train_df))])
-
     m = train['stars'].mean()
+    print('Rating Average is: ' + str(m))
     items_id_map, num_of_items, num_of_users, user_id_map = get_index_maps(train)
 
     pu = np.random.uniform(low=-1, high=1, size=(num_of_users, k)) * value
     qi = np.random.uniform(low=-1, high=1, size=(k, num_of_items)) * value
-    ## this is an hyper parmater that used for giving extra info about the user
-    bu = np.random.uniform(low=m, high=m, size=(num_of_users,))
-    ## same for items - is it item that usually get high score, or low?
-    bi = np.random.uniform(low=m, high=m, size=(num_of_items,))
+
+    bu = np.full(num_of_users, m)
+    bi = np.full(num_of_items, m)
 
     rmse_old = sys.maxsize
     old_bi, old_bu, old_pu, old_qi = create_copy(bi, bu, pu, qi)
     while True:
-        calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, user_id_map)
+        calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_param, m, pu, qi, train, user_id_map)
         prediction = predict_mf(bi, bu, items_id_map, m, pu, qi, user_id_map, validate)
         # rmse_new = rmse(prediction, validate['stars'])
         rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
@@ -125,6 +132,24 @@ def calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, 
         qi[:, item_idx] = curr_qi + gamma * (eui * curr_pu - lambda_parm * curr_qi)
 
 
+# Q5
+def p_q_visualization(p, q):
+    X = p
+    y = q
+    feat_cols = ['pixel' + str(i) for i in range(X.shape[1])]
+    df = pd.DataFrame(X, columns=feat_cols)
+    df['y'] = y
+    df['label'] = df['y'].apply(lambda i: str(i))
+    np.random.seed(42)
+    rndperm = np.random.permutation(df.shape[0])
+    plt.gray()
+    fig = plt.figure(figsize=(16, 7))
+    for i in range(0, 15):
+        ax = fig.add_subplot(3, 5, i + 1, title="Digit: {}".format(str(df.loc[rndperm[i], 'label'])))
+        ax.matshow(df.loc[rndperm[i], feat_cols].values.reshape((28, 28)).astype(float))
+    plt.show()
+
+
 # Q6
 def train_content_model(ratings_train_df):
     train, validate = \
@@ -165,61 +190,25 @@ if __name__ == '__main__':
     # ratings_df = pd.read_csv("yelp_data/Yelp_ratings.csv", encoding="UTF-8")
     # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
 
-    ratings_test_df, ratings_train_df = test_train_split()
-    gamma, lambda_parm = 0.02, 0.02
-    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, 0.0005)
+    # ratings_test_df, ratings_train_df = test_train_split()
+    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.025, 0.0005)
     # print("Final RMSE is: " + str(rmse))
 
+    pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
+    qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
+    p_q_visualization(pu, qi)
 
-    best_i = 0
-    best_rmse = 20000000
-
-    # choose initialization values:
-    # i = 0.0005
-    # while i < 0.5:
-    #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, gamma, lambda_parm, i)
-    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
-    #     if rmse < best_rmse:
-    #         best_i = i
-    #         best_rmse = rmse
-    #     i += 0.0005
-    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
-
-    # choose k:
-    for i in range(5, 2000, 5):
-        print("\n" + str(i))
-        bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(i, ratings_train_df, gamma, lambda_parm, 0.0005)
-        print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
-        if rmse < best_rmse:
-            best_i = i
-            best_rmse = rmse
-    print("\nBest rmse is for i: " + str(best_i) + ", with rmse: " + str(best_rmse))
-
-    # choose gamma values:
+    # best_i = 0
+    # best_rmse = 20000000
+    #
+    # # choose lambda values:
     # i = 0.01
     # while i < 1:
     #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, i, 0.02, 0.0005)
+    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, i, 0.0005)
     #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
     #     if rmse < best_rmse:
     #         best_i = i
     #         best_rmse = rmse
     #     i += 0.005
     # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
-
-    # choose lambda values:
-    # i = 0.01
-    # while i < 1:
-    #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(150, ratings_train_df, 0.02, i, 0.0005)
-    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
-    #     if rmse < best_rmse:
-    #         best_i = i
-    #         best_rmse = rmse
-    #     i += 0.005
-    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
-
-
-
-
