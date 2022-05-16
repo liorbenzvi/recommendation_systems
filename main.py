@@ -14,7 +14,7 @@ import seaborn as sns
 from collections import Counter
 from kmodes.kmodes import KModes
 
-ratings_file_name = "yelp_data/Yelp_ratings_DEMO.csv"
+ratings_file_name = "yelp_data/Yelp_ratings.csv"
 yelp_business_file_name = "yelp_data/yelp_business.csv"
 
 
@@ -167,7 +167,7 @@ def p_q_visualization(p, q):
         ax.matshow(df.loc[rndperm[i], feat_cols].values.reshape((28, 28)).astype(float))
     plt.show()
 
-def chooseMostCommon(cat_dict, currRow):
+def choose_most_common(cat_dict, currRow):
     max = 0
     max_idx = ""
     for i in currRow.split(";"):
@@ -202,7 +202,7 @@ def read_and_clean_business_df():
     counter = Counter(flat_list)
     cat_dict = dict(counter)
 
-    yelp_business_file_df['newCat'] = yelp_business_file_df.apply(lambda row: chooseMostCommon(cat_dict, row['categories']), axis=1)
+    yelp_business_file_df['newCat'] = yelp_business_file_df.apply(lambda row: choose_most_common(cat_dict, row['categories']), axis=1)
     yelp_business_file_df = yelp_business_file_df.drop(
         ['categories'], axis=1)
 
@@ -273,7 +273,7 @@ def predict_content_base(yelp_business_ID_and_stars, df):
 
 
 # Q7
-def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df):
+def predict_rating (id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df):
     m = df['stars'].mean()
     mf_pred = predict_single_user_business_mf(bi, bu, id_business, id_user, items_id_map, m, pu, qi, user_id_map)
     content_pred = ""  ## todo - fill
@@ -299,12 +299,9 @@ def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df):
 
 
 if __name__ == '__main__':
-    # business_df = pd.read_csv("yelp_data/yelp_business.csv", encoding="UTF-8")
-    # ratings_df = pd.read_csv("yelp_data/Yelp_ratings.csv", encoding="UTF-8")
-    # ratings_demo_df = pd.read_csv("yelp_data/Yelp_ratings_DEMO.csv", encoding="UTF-8")
 
     ratings_test_df, ratings_train_df = test_train_split()
-<<<<<<< HEAD
+
     bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
         train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
@@ -312,32 +309,9 @@ if __name__ == '__main__':
     print("Final prediction on validation set histogram: ")
     print({x: prediction.count(x) for x in prediction})
 
-    # pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
-    # qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
     # p_q_visualization(pu, qi)
-=======
     yelp_business_ID_and_stars = train_content_model()
 
-    #get_score_for_content_base(id, yelp_business_ID_and_stars)
-    # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.025, 0.0005)
-    # print("Final RMSE is: " + str(rmse))
 
-    pu = np.random.uniform(low=-1, high=1, size=(40, 100)) * 0.0005
-    qi = np.random.uniform(low=-1, high=1, size=(100, 50)) * 0.0005
-    p_q_visualization(pu, qi)
 
-    # best_i = 0
-    # best_rmse = 20000000
-    #
-    # # choose lambda values:
-    # i = 0.01
-    # while i < 1:
-    #     print("\n" + str(i))
-    #     bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, i, 0.0005)
-    #     print("For i:" + str(i) + ", Final RMSE is: " + str(rmse))
-    #     if rmse < best_rmse:
-    #         best_i = i
-    #         best_rmse = rmse
-    #     i += 0.005
-    # print("\nBest rmse is for x: " + str(best_i) + ", with rmse: " + str(best_rmse))
->>>>>>> 08ada9a (add content base algo)
+
