@@ -239,16 +239,37 @@ def train_content_model():
     yelp_business_file_df_name_Id, yelp_business_file_df = read_and_clean_business_df()
     cat_idx = get_list_of_cat_fileds(yelp_business_file_df)
 
-    kproto = KPrototypes(n_clusters=5, verbose=2, max_iter=3)
-    clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
 
-    yelp_business_ID_and_stars =  get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df, clusters)
-
+    train, validate = \
+        np.split(ratings_train_df.sample(frac=1, random_state=42),
+                 [int(.8 * len(ratings_train_df))])
+    bestk = 5
+    bestrmse = 0
+    for x in range(5, 10):
+        kproto = KPrototypes(n_clusters=x, verbose=2, max_iter=3)
+        clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
+        yelp_business_ID_and_stars =  get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df, clusters)
+        yelp_business_ID_and_stars = dict(yelp_business_ID_and_stars.values)
+        prediction = predict_content_base(yelp_business_ID_and_stars, validate)
+        rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
+        bestrmse = rmse_new if rmse_new > bestrmse else bestrmse
+        bestk = x if rmse_new > bestrmse else bestk
 
     return yelp_business_ID_and_stars
 
-def get_score_for_content_base(id, yelp_business_ID_and_stars):
-    return yelp_business_ID_and_stars.loc[yelp_business_ID_and_stars['business_id'] == id]
+def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
+    if id in yelp_business_ID_and_stars.keys():
+        return yelp_business_ID_and_stars.get(id)
+    else:
+        return m
+
+
+def predict_content_base(yelp_business_ID_and_stars, df):
+    prediction = []
+    m = np.array(list(yelp_business_ID_and_stars.values())).mean()
+    prediction = df.apply(lambda row: get_score_for_content_base( row['user_id'],yelp_business_ID_and_stars,m), axis=1)
+    return prediction
+
 
 
 # Q7
@@ -297,7 +318,7 @@ if __name__ == '__main__':
 =======
     yelp_business_ID_and_stars = train_content_model()
 
-    get_score_for_content_base(id, yelp_business_ID_and_stars)
+    #get_score_for_content_base(id, yelp_business_ID_and_stars)
     # bi, bu, pu, qi, rmse, user_id_map, items_id_map = train_base_model(165, ratings_train_df, 0.015, 0.025, 0.0005)
     # print("Final RMSE is: " + str(rmse))
 
