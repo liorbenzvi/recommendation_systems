@@ -266,7 +266,7 @@ def train_content_model():
         rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
         bestrmse = rmse_new if rmse_new > bestrmse else bestrmse
         bestk = x if rmse_new > bestrmse else bestk
-
+    print("bestrmse: " + str(bestrmse) + ", bestk: " + str(bestk))
     return yelp_business_ID_and_stars
 
 
@@ -278,7 +278,6 @@ def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
 
 
 def predict_content_base(yelp_business_ID_and_stars, df):
-    prediction = []
     m = np.array(list(yelp_business_ID_and_stars.values())).mean()
     prediction = df.apply(lambda row: get_score_for_content_base(row['user_id'], yelp_business_ID_and_stars, m), axis=1)
     return prediction
@@ -288,16 +287,17 @@ def predict_content_base(yelp_business_ID_and_stars, df):
 def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df):
     m = df['stars'].mean()
     mf_pred = predict_single_user_business_mf(bi, bu, id_business, id_user, items_id_map, m, pu, qi, user_id_map)
-    content_pred = ""  ## todo - fill
+    content_pred = predict_content_base(yelp_business_ID_and_stars, df)
     return mf_pred, content_pred
 
 
 # Q8
-def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df):
+def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df,  yelp_business_ID_and_stars):
     mf_predictions = []
     content_predictions = []
     for user, business in df['user_id', 'business_id']:
-        mf_pred, content_pred = predict_rating(user, business, bi, bu, pu, qi, user_id_map, items_id_map, df)
+        mf_pred, content_pred = \
+            predict_rating(user, business, bi, bu, pu, qi, user_id_map, items_id_map, df, yelp_business_ID_and_stars)
         mf_predictions.append(mf_pred)
         content_predictions.append(content_pred)
 
@@ -312,16 +312,21 @@ def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df):
 
 if __name__ == '__main__':
     ratings_test_df, ratings_train_df = test_train_split()
-    #
-    # bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
-    #     train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
-    # print("Final RMSE is: " + str(rmse))
-    # print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
-    # print("Final prediction on validation set histogram: ")
-    # print({x: prediction.count(x) for x in prediction})
-    #
-    # # p_q_visualization(pu, qi)
+
+    print('Train mf')
+    bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
+        train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
+    print("Final RMSE is: " + str(rmse))
+    print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
+    print("Final prediction on validation set histogram: ")
+    print({x: prediction.count(x) for x in prediction})
+    # p_q_visualization(pu, qi)
+
+    print('Train content model')
     yelp_business_ID_and_stars = train_content_model()
+
+    print('Compare models')
+    compere_models(bi, bu, pu, qi, user_id_map, items_id_map, ratings_test_df,  yelp_business_ID_and_stars)
 
 
 
