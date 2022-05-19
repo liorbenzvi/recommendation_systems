@@ -313,7 +313,7 @@ def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df,  yelp_business
 if __name__ == '__main__':
     ratings_test_df, ratings_train_df = test_train_split()
 
-    print('Train mf')
+    print('Train MF: ')
     bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
         train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
@@ -322,10 +322,10 @@ if __name__ == '__main__':
     print({x: prediction.count(x) for x in prediction})
     # p_q_visualization(pu, qi)
 
-    print('Train content model')
+    print('Train content model: ')
     yelp_business_ID_and_stars = train_content_model()
 
-    print('Compare models')
+    print('Compare models: ')
     compere_models(bi, bu, pu, qi, user_id_map, items_id_map, ratings_test_df,  yelp_business_ID_and_stars)
 
 
