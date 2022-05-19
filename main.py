@@ -186,7 +186,7 @@ def choose_most_common(cat_dict, currRow):
 def read_and_clean_business_df():
     ## read file
     yelp_business_file_df = pd.read_csv(yelp_business_file_name, encoding="UTF-8")
-    yelp_business_file_df = yelp_business_file_df.head(100)
+    #yelp_business_file_df = yelp_business_file_df.head(20)
     ## removing business with less then 5 rev
     yelp_business_file_df = yelp_business_file_df[yelp_business_file_df["review_count"] > 5]
     ## remove close business
@@ -245,8 +245,10 @@ def get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_d
 
 # Q6
 def train_content_model():
+
     yelp_business_file_df_name_Id, yelp_business_file_df = read_and_clean_business_df()
     cat_idx = get_list_of_cat_fileds(yelp_business_file_df)
+
 
     train, validate = \
         np.split(ratings_train_df.sample(frac=1, random_state=42),
@@ -254,10 +256,11 @@ def train_content_model():
     bestk = 5
     bestrmse = 0
     for x in range(5, 10):
+        temp_yelp_business_file_df_name_Id = yelp_business_file_df_name_Id.copy()
         kproto = KPrototypes(n_clusters=x, verbose=2, max_iter=3)
         clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
-        yelp_business_ID_and_stars = get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df,
-                                                              clusters)
+        yelp_business_ID_and_stars = get_ids_and_avg_stars_df(temp_yelp_business_file_df_name_Id,
+                                                               yelp_business_file_df, clusters)
         yelp_business_ID_and_stars = dict(yelp_business_ID_and_stars.values)
         prediction = predict_content_base(yelp_business_ID_and_stars, validate)
         rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
@@ -319,3 +322,7 @@ if __name__ == '__main__':
     #
     # # p_q_visualization(pu, qi)
     yelp_business_ID_and_stars = train_content_model()
+
+
+
+
