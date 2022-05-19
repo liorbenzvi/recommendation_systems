@@ -152,29 +152,36 @@ def calc_q_p_metrix(bi, bu, gamma, items_id_map, lambda_parm, m, pu, qi, train, 
 
 # Q5
 def p_q_visualization(p, q):
-    X = p
-    y = q
-    feat_cols = ['pixel' + str(i) for i in range(X.shape[1])]
-    df = pd.DataFrame(X, columns=feat_cols)
-    df['y'] = y
-    df['label'] = df['y'].apply(lambda i: str(i))
-    np.random.seed(42)
-    rndperm = np.random.permutation(df.shape[0])
-    plt.gray()
-    fig = plt.figure(figsize=(16, 7))
-    for i in range(0, 15):
-        ax = fig.add_subplot(3, 5, i + 1, title="Digit: {}".format(str(df.loc[rndperm[i], 'label'])))
-        ax.matshow(df.loc[rndperm[i], feat_cols].values.reshape((28, 28)).astype(float))
+    # 100 users:
+    flat_p_array = p.flatten()[:100]
+    x = np.array(range(0, 100))
+    plt.scatter(x, flat_p_array)
+    plt.title("Plotting P users matrix")
+    plt.xlabel("X - index of users")
+    plt.ylabel("Y - P flatten values")
+    plt.legend()
     plt.show()
 
-def chooseMostCommon(cat_dict, currRow):
+    # 100 business:
+    flat_q_array = q.flatten()[:100]
+    x = np.array(range(0, 100))
+    plt.scatter(x, flat_q_array)
+    plt.title("Plotting Q business matrix")
+    plt.xlabel("X - index of business")
+    plt.ylabel("Y - Q flatten values")
+    plt.legend()
+    plt.show()
+
+
+def choose_most_common(cat_dict, currRow):
     max = 0
     max_idx = ""
     for i in currRow.split(";"):
         if max < cat_dict.get(i):
             max = cat_dict.get(i)
             max_idx = i
-    return  max_idx
+    return max_idx
+
 
 def read_and_clean_business_df():
     ## read file
@@ -186,7 +193,7 @@ def read_and_clean_business_df():
     yelp_business_file_df = yelp_business_file_df[yelp_business_file_df["is_open"] == 1]
     ## remove field that not providing data to the model
     yelp_business_file_df = yelp_business_file_df.drop(
-        [ 'address', 'latitude', 'longitude', 'is_open'], axis=1)
+        ['address', 'latitude', 'longitude', 'is_open'], axis=1)
     ## fill neighborhood nulls with postal_code
     yelp_business_file_df.neighborhood.fillna(yelp_business_file_df.postal_code, inplace=True)
     ## remove other nulls
@@ -202,14 +209,15 @@ def read_and_clean_business_df():
     counter = Counter(flat_list)
     cat_dict = dict(counter)
 
-    yelp_business_file_df['newCat'] = yelp_business_file_df.apply(lambda row: chooseMostCommon(cat_dict, row['categories']), axis=1)
+    yelp_business_file_df['newCat'] = yelp_business_file_df.apply(
+        lambda row: choose_most_common(cat_dict, row['categories']), axis=1)
     yelp_business_file_df = yelp_business_file_df.drop(
         ['categories'], axis=1)
 
+    return yelp_business_file_df.iloc[:, :2], yelp_business_file_df.iloc[:, 2:]
 
-    return yelp_business_file_df.iloc[:,:2], yelp_business_file_df.iloc[:,2:]
 
-def get_list_of_cat_fileds( yelp_business_file_df):
+def get_list_of_cat_fileds(yelp_business_file_df):
     cat_idx = []
     i = 0
     for coloum in yelp_business_file_df.columns:
@@ -218,11 +226,12 @@ def get_list_of_cat_fileds( yelp_business_file_df):
         i = i + 1
     return cat_idx
 
+
 def get_cluster_avg_stars(clusters_rating, cluster):
     return clusters_rating[cluster]
 
 
-def get_ids_and_avg_stars_df(yelp_business_file_df_name_Id,yelp_business_file_df, clusters):
+def get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df, clusters):
     yelp_business_file_df_name_Id.insert(0, "cluster", clusters, True)
     yelp_business_file_df_name_Id.insert(0, "stars", yelp_business_file_df['stars'], True)
 
@@ -230,15 +239,14 @@ def get_ids_and_avg_stars_df(yelp_business_file_df_name_Id,yelp_business_file_df
     yelp_business_file_df_name_Id['catStars'] = yelp_business_file_df_name_Id.apply(
         lambda row: get_cluster_avg_stars(clusters_rating, row['cluster']), axis=1)
     yelp_business_ID_and_stars = yelp_business_file_df_name_Id.drop(
-        [ 'name', 'cluster','stars'], axis=1)
+        ['name', 'cluster', 'stars'], axis=1)
     return yelp_business_ID_and_stars
+
 
 # Q6
 def train_content_model():
-
     yelp_business_file_df_name_Id, yelp_business_file_df = read_and_clean_business_df()
     cat_idx = get_list_of_cat_fileds(yelp_business_file_df)
-
 
     train, validate = \
         np.split(ratings_train_df.sample(frac=1, random_state=42),
@@ -248,7 +256,8 @@ def train_content_model():
     for x in range(5, 10):
         kproto = KPrototypes(n_clusters=x, verbose=2, max_iter=3)
         clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
-        yelp_business_ID_and_stars =  get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df, clusters)
+        yelp_business_ID_and_stars = get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_df,
+                                                              clusters)
         yelp_business_ID_and_stars = dict(yelp_business_ID_and_stars.values)
         prediction = predict_content_base(yelp_business_ID_and_stars, validate)
         rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
@@ -256,6 +265,7 @@ def train_content_model():
         bestk = x if rmse_new > bestrmse else bestk
 
     return yelp_business_ID_and_stars
+
 
 def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
     if id in yelp_business_ID_and_stars.keys():
@@ -267,9 +277,8 @@ def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
 def predict_content_base(yelp_business_ID_and_stars, df):
     prediction = []
     m = np.array(list(yelp_business_ID_and_stars.values())).mean()
-    prediction = df.apply(lambda row: get_score_for_content_base( row['user_id'],yelp_business_ID_and_stars,m), axis=1)
+    prediction = df.apply(lambda row: get_score_for_content_base(row['user_id'], yelp_business_ID_and_stars, m), axis=1)
     return prediction
-
 
 
 # Q7
@@ -299,8 +308,7 @@ def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df):
 
 
 if __name__ == '__main__':
-
-    # ratings_test_df, ratings_train_df = test_train_split()
+    ratings_test_df, ratings_train_df = test_train_split()
     #
     # bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
     #     train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
@@ -311,7 +319,3 @@ if __name__ == '__main__':
     #
     # # p_q_visualization(pu, qi)
     yelp_business_ID_and_stars = train_content_model()
-
-
-
-
