@@ -75,7 +75,7 @@ def train_base_model(k, ratings_train_df, gamma, lambda_param, value):
         rmse_new = rmse(prediction, target)
         acc_new = accuracy(prediction, target)
         print("Iteration number: " + str(i) + ", with RMSE: " + str(rmse_new))
-        if rmse_new > rmse_old:
+        if rmse_new >= rmse_old:
             return old_pu, old_qi, old_bu, old_bi, rmse_old, user_id_map, items_id_map, old_prediction, acc_old
         rmse_old = rmse_new
         acc_old = acc_new
@@ -245,7 +245,6 @@ def get_ids_and_avg_stars_df(yelp_business_file_df_name_Id, yelp_business_file_d
 
 # Q6
 def train_content_model():
-
     yelp_business_file_df_name_Id, yelp_business_file_df = read_and_clean_business_df()
     cat_idx = get_list_of_cat_fileds(yelp_business_file_df)
 
@@ -256,7 +255,7 @@ def train_content_model():
     bestk = 5
     bestrmse = 10000000
     best_dict = {}
-    for x in range(7, 20):
+    for x in range(5, 10):
         temp_yelp_business_file_df_name_Id = yelp_business_file_df_name_Id.copy()
         kproto = KPrototypes(n_clusters=x, verbose=2, max_iter=3)
         clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
@@ -274,9 +273,9 @@ def train_content_model():
 
 def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
     if id in yelp_business_ID_and_stars.keys():
-        return yelp_business_ID_and_stars.get(id)
+        return round_prediction(yelp_business_ID_and_stars.get(id))
     else:
-        return m
+        return round_prediction(m)
 
 
 def predict_content_base(yelp_business_ID_and_stars, df):
@@ -289,7 +288,7 @@ def predict_content_base(yelp_business_ID_and_stars, df):
 def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df, yelp_business_ID_and_stars):
     m = df['stars'].mean()
     mf_pred = predict_single_user_business_mf(bi, bu, id_business, id_user, items_id_map, m, pu, qi, user_id_map)
-    content_pred = predict_content_base(yelp_business_ID_and_stars, df)
+    content_pred = get_score_for_content_base(id_business, yelp_business_ID_and_stars, m)
     return mf_pred, content_pred
 
 
@@ -304,20 +303,21 @@ def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df,  yelp_business
         mf_predictions.append(mf_pred)
         content_predictions.append(content_pred)
 
-    rmse_mf = rmse(mf_predictions, df['stars'])
-    rmse_content = rmse(content_predictions, df['stars'])
+    rmse_mf = np.sqrt(((np.array(mf_predictions) - np.array(df['stars'])) ** 2).mean())
+    rmse_content = np.sqrt(((np.array(content_predictions) - np.array(df['stars'])) ** 2).mean())
     print("RMSE: rmse of mf model: " + str(rmse_mf) + ", rmse of content model: " + str(rmse_content))
 
     acc_mf = accuracy(mf_predictions, df['stars'])
     acc_content = accuracy(content_predictions, df['stars'])
-    print("Accuracy: accuracy of mf model: " + str(acc_mf) + ", accuracy of content model: " + str(acc_content))
+    print("Accuracy: accuracy of mf model: " + str(round(acc_mf * 100, 2)) + "%" + ", accuracy of content model: "
+          + str(round(acc_content * 100, 2)) + "%")
 
 
 if __name__ == '__main__':
     ratings_test_df, ratings_train_df = test_train_split()
 
     print('Train MF: ')
-    bi, bu, pu, qi, rmse, user_id_map, items_id_map, prediction, acc =\
+    pu, qi, bu, bi, rmse, user_id_map, items_id_map, prediction, acc =\
         train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
     print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
