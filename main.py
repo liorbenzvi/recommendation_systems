@@ -113,9 +113,9 @@ def predict_single_user_business_mf(bi, bu, curr_item_id, curr_user_id, items_id
     user_idx = user_id_map.get(curr_user_id, None)
     item_idx = items_id_map.get(curr_item_id, None)
     if user_idx is None and not (item_idx is None):
-        return round_prediction(pu.mean(axis=0).dot(qi[:, item_idx]))
+        return round_prediction((pu.mean(axis=0)).dot(qi[:, item_idx]))
     if not (user_idx is None) and item_idx is None:
-        return round_prediction(pu[user_idx].dot(qi.mean(axis=1)))
+        return round_prediction((pu[user_idx]).dot(qi.mean(axis=1)))
     if user_idx is None and item_idx is None:
         return round_prediction(m)
     curr_bu = bu[user_idx]
@@ -319,7 +319,7 @@ if __name__ == '__main__':
         train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
     print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
-    p_q_visualization(pu, qi)
+    # p_q_visualization(pu, qi)
 
     print('Train content model: ')
     yelp_business_ID_and_stars = train_content_model()
