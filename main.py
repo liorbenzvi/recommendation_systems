@@ -284,7 +284,7 @@ def predict_content_base(yelp_business_ID_and_stars, df):
 
 
 # Q7
-def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df):
+def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_map, df, yelp_business_ID_and_stars):
     m = df['stars'].mean()
     mf_pred = predict_single_user_business_mf(bi, bu, id_business, id_user, items_id_map, m, pu, qi, user_id_map)
     content_pred = predict_content_base(yelp_business_ID_and_stars, df)
@@ -295,9 +295,10 @@ def predict_rating(id_user, id_business, bi, bu, pu, qi, user_id_map, items_id_m
 def compere_models(bi, bu, pu, qi, user_id_map, items_id_map, df,  yelp_business_ID_and_stars):
     mf_predictions = []
     content_predictions = []
-    for user, business in df['user_id', 'business_id']:
+    for line in (df[['user_id', 'business_id']]).iterrows():
+        user_id, item_id = line[1]
         mf_pred, content_pred = \
-            predict_rating(user, business, bi, bu, pu, qi, user_id_map, items_id_map, df, yelp_business_ID_and_stars)
+            predict_rating(user_id, item_id, bi, bu, pu, qi, user_id_map, items_id_map, df, yelp_business_ID_and_stars)
         mf_predictions.append(mf_pred)
         content_predictions.append(content_pred)
 
@@ -318,9 +319,7 @@ if __name__ == '__main__':
         train_base_model(165, ratings_train_df, 0.015, 0.95, 0.0005)
     print("Final RMSE is: " + str(rmse))
     print("Final accuracy is: " + str(round(acc * 100, 2)) + "%")
-    print("Final prediction on validation set histogram: ")
-    print({x: prediction.count(x) for x in prediction})
-    # p_q_visualization(pu, qi)
+    p_q_visualization(pu, qi)
 
     print('Train content model: ')
     yelp_business_ID_and_stars = train_content_model()
