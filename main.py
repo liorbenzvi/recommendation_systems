@@ -254,8 +254,9 @@ def train_content_model():
         np.split(ratings_train_df.sample(frac=1, random_state=42),
                  [int(.8 * len(ratings_train_df))])
     bestk = 5
-    bestrmse = 0
-    for x in range(5, 10):
+    bestrmse = 10000000
+    best_dict = {}
+    for x in range(7, 20):
         temp_yelp_business_file_df_name_Id = yelp_business_file_df_name_Id.copy()
         kproto = KPrototypes(n_clusters=x, verbose=2, max_iter=3)
         clusters = kproto.fit_predict(yelp_business_file_df.values, categorical=cat_idx)
@@ -264,10 +265,11 @@ def train_content_model():
         yelp_business_ID_and_stars = dict(yelp_business_ID_and_stars.values)
         prediction = predict_content_base(yelp_business_ID_and_stars, validate)
         rmse_new = np.sqrt(((np.array(prediction) - np.array(validate['stars'])) ** 2).mean())
-        bestrmse = rmse_new if rmse_new > bestrmse else bestrmse
-        bestk = x if rmse_new > bestrmse else bestk
+        bestrmse = rmse_new if rmse_new < bestrmse else bestrmse
+        bestk = x if rmse_new < bestrmse else bestk
+        best_dict = yelp_business_ID_and_stars.copy if rmse_new < bestrmse else best_dict
     print("bestrmse: " + str(bestrmse) + ", bestk: " + str(bestk))
-    return yelp_business_ID_and_stars
+    return best_dict
 
 
 def get_score_for_content_base(id, yelp_business_ID_and_stars, m):
