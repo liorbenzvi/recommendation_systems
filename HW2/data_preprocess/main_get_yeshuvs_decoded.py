@@ -1,5 +1,3 @@
-from HW2.data_preprocess.columns_addition import *
-
 if __name__ == '__main__':
     age = pd.read_csv("../csv_files/age.csv", encoding="UTF-8")
     gender = pd.read_csv("../csv_files/maleFemale1.csv", encoding="UTF-8")
