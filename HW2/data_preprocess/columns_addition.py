@@ -47,7 +47,7 @@ def add_cluster_avg_columns(df):
 
 
 def add_force_avg_columns(df):
-    additional_data_on_rolls_df = pd.read_csv("../csv_files/additional_data_on_roles.csv",
+    additional_data_on_rolls_df = pd.read_csv("../csv_files/roles_data/additional_data_on_roles.csv",
                                               encoding='latin-1')
     # Add 2 average columns (with/ without null) for each force :
     for force in ["air", "ground", "navy", "general"]:
@@ -58,7 +58,7 @@ def add_force_avg_columns(df):
 
 
 def add_technological_avg_columns(df):
-    additional_data_on_rolls_df = pd.read_csv("../csv_files/additional_data_on_roles.csv",
+    additional_data_on_rolls_df = pd.read_csv("../csv_files/roles_data/additional_data_on_roles.csv",
                                               encoding='latin-1')
     is_technological_col = additional_data_on_rolls_df.loc[
         additional_data_on_rolls_df['is_technological'] == 'yes', 'role']
@@ -68,7 +68,7 @@ def add_technological_avg_columns(df):
 
 
 def add_physical_avg_columns(df):
-    additional_data_on_rolls_df = pd.read_csv("../csv_files/additional_data_on_roles.csv",
+    additional_data_on_rolls_df = pd.read_csv("../csv_files/roles_data/additional_data_on_roles.csv",
                                               encoding='latin-1')
     is_physical_col = additional_data_on_rolls_df.loc[
         additional_data_on_rolls_df['is_physical'] == 'yes', 'role']
@@ -78,7 +78,7 @@ def add_physical_avg_columns(df):
 
 
 def add_leadership_avg_columns(df):
-    additional_data_on_rolls_df = pd.read_csv("../csv_files/additional_data_on_roles.csv",
+    additional_data_on_rolls_df = pd.read_csv("../csv_files/roles_data/additional_data_on_roles.csv",
                                               encoding='latin-1')
     is_physical_col = additional_data_on_rolls_df.loc[
         additional_data_on_rolls_df['is_leadership'] == 'yes', 'role']
@@ -266,7 +266,7 @@ def remove_columns_from_df(df):
 
 
 def add_decoded_towns(df):
-    decode = pd.read_csv("../csv_files/decodedYeshuvs.csv", encoding="UTF-8")
+    decode = pd.read_csv("../csv_files/users_data/decodedYeshuvs.csv", encoding="UTF-8")
     dic = dict([([a, b]) for a, b in zip(decode.coded_semel, decode.semel)])
     df["decoded_towns"] = df.apply(lambda row: get_decoded_town(row, dic), axis=1)
     return df
@@ -293,7 +293,7 @@ def add_social_economic_data(df, social_economic, param):
 
 
 def add_additional_data_about_towns(df):
-    education = pd.read_csv("../csv_files/extarnal data/education.csv", encoding="UTF-8")
+    education = pd.read_csv("../csv_files/extarnal_data/education.csv", encoding="UTF-8")
     add_additional_data_from_towns_per_column(df, education, "num_of_schools")
     add_additional_data_from_towns_per_column(df, education, "num_of_class")
     add_additional_data_from_towns_per_column(df, education, "num_of_students")
@@ -306,7 +306,7 @@ def add_additional_data_about_towns(df):
     add_additional_data_from_towns_per_column(df, education, "Average_students_per_teacher")
     add_additional_data_from_towns_per_column(df, education, "average_weekly_working_hours_per_student")
 
-    social_economic = pd.read_csv("../csv_files/social_economic_data_by_town.csv")
+    social_economic = pd.read_csv("../csv_files/users_data/social_economic_data_by_town.csv")
     add_additional_data_from_towns_per_column(df, social_economic, "town_type", "category")
     add_additional_data_from_towns_per_column(df, social_economic, "town_social_economic_rating")
     return df

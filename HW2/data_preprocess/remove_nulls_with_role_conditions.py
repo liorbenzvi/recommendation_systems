@@ -19,7 +19,7 @@ def remove_nulls_with_roles_cond():
     df3 = pd.read_csv("../csv_files/final_manila_data.csv", encoding="UTF-8")
     df3 = df3.fillna(-2)
     df = df.fillna(0)
-    df2 = pd.read_csv("../csv_files/all_roles_conditions_csv.csv", encoding="UTF-8")
+    df2 = pd.read_csv("../csv_files/roles_data/all_roles_conditions_csv.csv", encoding="UTF-8")
     outer_list = []
     i = 0
     for role in df2["role"]:

@@ -11,7 +11,7 @@ translator = Translator()
 branches = dict()
 
 def enrich(original_df: pd.DataFrame):
-    additional_data_df = pd.read_csv('../csv_files/city_birth_and_fill_date_additional_data.csv', encoding='UTF-8', index_col='mispar_ishi')
+    additional_data_df = pd.read_csv('../csv_files/users_data/city_birth_and_fill_date_additional_data.csv', encoding='UTF-8', index_col='mispar_ishi')
     original_df.sort_values(by=['MISPAR_ISHI'], inplace=True)
     additional_data_df.sort_values(by=['mispar_ishi'], inplace=True)
     return pd.concat([original_df, additional_data_df], axis=1)
