@@ -43,9 +43,9 @@ def get_full_users_df():
 
 if __name__ == '__main__':
     # roles:
-    # roles_data = get_full_roles_df()
-    # roles_data = roles_data.fillna(0)
-    # add_clusters_to_roles_data(roles_data)
+    roles_data = get_full_roles_df()
+    roles_data = roles_data.fillna(0)
+    add_clusters_to_roles_data(roles_data)
 
     # users:
     users_df = get_full_users_df()
