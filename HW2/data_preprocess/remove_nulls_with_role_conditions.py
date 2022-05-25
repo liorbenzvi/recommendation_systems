@@ -1,6 +1,6 @@
 import pandas as pd
 from collections import Counter
-from HW2 import get_only_roles_columns
+from HW2.data_preprocess.columns_addition import get_only_roles_columns
 
 
 def add_cluster_labels(df):

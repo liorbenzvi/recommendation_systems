@@ -1,3 +1,5 @@
+import pandas as pd
+
 from HW2 import ROLES_COLUMNS
 
 if __name__ == '__main__':

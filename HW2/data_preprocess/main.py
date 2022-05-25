@@ -1,5 +1,6 @@
-
-from HW2 import preprocess, enrich
+import pandas as pd
+from HW2.data_preprocess.preprocessor import preprocess, enrich
+from HW2.data_preprocess.columns_addition import *
 
 if __name__ == '__main__':
     print("\n\n\n**************************** read raw data ****************************\n\n\n")
