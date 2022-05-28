@@ -57,9 +57,12 @@ def print_values_statistics(y):
     print('\n\n')
 
 
-def print_results(y_pred, y_test, clf, df, x_filter, y_train_pred, y_train):
+def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
     print_total_acc(y_pred, y_test, y_train, y_train_pred)
     print_acc_by_class(y_pred, y_test, y_train, y_train_pred)
+    print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
 
     rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
     print("\nRMSE: {0}".format(str(rmse)))
@@ -90,3 +93,69 @@ def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
         train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j and i == rank])
         print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
         print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
+
+
+def print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_test):
+    print("Accuracy by dapar score:")
+    for d in range(10, 100, 10):
+        y_pred_d = []
+        y_test_d = []
+        for i in range(0, len(y_pred)):
+            if x_train["dapar"].iloc(i) == d:
+                y_pred_d.append(y_pred[i])
+                y_test_d.append(y_test[i])
+
+        y_train_pred_d = []
+        y_train_d = []
+        for i in range(0, len(y_test)):
+            if x_test["dapar"].iloc(i) == d:
+                y_train_pred_d.append(y_train_pred[i])
+                y_train_d.append(y_train[i])
+        print('Accuracy for dapar class: ' + str(d))
+        print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
+
+
+def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test):
+    print("Accuracy by user cluster:")
+    user_data = pd.read_csv('../csv_files/users_data/full_users_data.csv', encoding="UTF-8")
+    for c in range(0, 10):
+        y_pred_d = []
+        y_test_d = []
+        for i in range(0, len(y_pred)):
+            user = x_train["mispar_ishi"].iloc(i)
+            if user_data["cluster"].iloc(user) == c:
+                y_pred_d.append(y_pred[i])
+                y_test_d.append(y_test[i])
+
+        y_train_pred_d = []
+        y_train_d = []
+        for i in range(0, len(y_test)):
+            user = x_test["mispar_ishi"].iloc(i)
+            if user_data["cluster"].iloc(user) == c:
+                y_train_pred_d.append(y_train_pred[i])
+                y_train_d.append(y_train[i])
+        print('Accuracy for user cluster: ' + str(c))
+        print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
+
+
+def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test):
+    print("Accuracy by role cluster:")
+    roles_data = pd.read_csv('../csv_files/roles_data/full_roles_data.csv', encoding="UTF-8")
+    for c in range(0, 5):
+        y_pred_d = []
+        y_test_d = []
+        for i in range(0, len(y_pred)):
+            role = x_train["role"].iloc(i)
+            if roles_data.at[role, 'cluster'] == c:
+                y_pred_d.append(y_pred[i])
+                y_test_d.append(y_test[i])
+
+        y_train_pred_d = []
+        y_train_d = []
+        for i in range(0, len(y_test)):
+            role = x_test["role"].iloc(i)
+            if roles_data.at[role, 'cluster'] == c:
+                y_train_pred_d.append(y_train_pred[i])
+                y_train_d.append(y_train[i])
+        print('Accuracy for role cluster: ' + str(c))
+        print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)

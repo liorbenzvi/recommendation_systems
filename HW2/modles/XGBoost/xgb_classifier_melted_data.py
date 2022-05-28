@@ -86,7 +86,7 @@ def predict_and_train_on_melted_data(train_and_predict_func):
     x_train, x_test, y_train, y_test = split_df_to_validation_and_training(df, y_filter, x_filter)
     print("create classifier on melted df - predict for each role rank between 1-5")
     y_pred, clf, y_train_pred = train_and_predict_func(x_test, x_train, y_train)
-    print_results(y_pred, y_test, clf, df, x_filter, y_train_pred, y_train)
+    print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test)
     print("*** done ***")
 
 
