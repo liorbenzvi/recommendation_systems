@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+ranks = [100, 0, 1, 2, 3]
+
 
 def print_confusion_matrix(y_pred, y_actual):
     unique, counts = np.unique(y_pred, return_counts=True)
@@ -63,10 +65,14 @@ def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
     print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
     print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
     print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
 
     rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
-    print("\nRMSE: {0}".format(str(rmse)))
+    print("RMSE: {0}".format(str(rmse)))
 
+    print_diverse_measure_by_class(y_pred, x_test)
+
+    print('\n\n')
     print("y_pred info :\n")
     df_describe = pd.DataFrame(y_pred)
     print(df_describe.head())
@@ -84,7 +90,6 @@ def print_total_acc(y_pred, y_test, y_train, y_train_pred):
 
 
 def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
-    ranks = [100, 0, 1, 2, 3]
     print("Accuracy by ranks:")
     for rank in ranks:
         total_test = len([i for i in y_pred if i == rank])
@@ -159,3 +164,53 @@ def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
                 y_train_d.append(y_train[i])
         print('Accuracy for role cluster: ' + str(c))
         print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
+
+
+def print_diverse_measure_by_class(y_pred, x_test):
+    print("Diverse measure by ranks:")
+    for rank in ranks:
+        roles_set = set()
+        for i in range(0, len(y_pred)):
+            if i == rank:
+                role = x_test["role"].iloc(i)
+                roles_set.add(role)
+        print('For rank {0}, we have {1} different roles'.format(str(rank), str(len(roles_set))))
+
+
+def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x_test):
+    print("Accuracy by popular role cluster:")
+    roles_data = pd.read_csv('../csv_files/roles_data/full_roles_data.csv', encoding="UTF-8")
+    y_pred_d = []
+    y_test_d = []
+    count_rank_1 = 0
+    count_rank_1_and_popular = 0
+    for i in range(0, len(y_pred)):
+        role = x_train["role"].iloc(i)
+        if y_pred[i] == 1:
+            count_rank_1 += 1
+        if roles_data.at[role, 'is_popular']:
+            y_pred_d.append(y_pred[i])
+            y_test_d.append(y_test[i])
+            if y_pred[i] == 1:
+                count_rank_1_and_popular += 1
+    print("Out of {0} prediction with rank 1 on train set we have {1} predictions on popular roles"
+          .format(count_rank_1, count_rank_1_and_popular))
+
+    y_train_pred_d = []
+    y_train_d = []
+    count_rank_1 = 0
+    count_rank_1_and_popular = 0
+    for i in range(0, len(y_test)):
+        if y_pred[i] == 1:
+            count_rank_1 += 1
+        role = x_test["role"].iloc(i)
+        if roles_data.at[role, 'is_popular']:
+            y_train_pred_d.append(y_train_pred[i])
+            y_train_d.append(y_train[i])
+            if y_pred[i] == 1:
+                count_rank_1_and_popular += 1
+    print("Out of {0} prediction with rank 1 on test set we have {1} predictions on popular roles"
+          .format(count_rank_1, count_rank_1_and_popular))
+
+    print('Accuracy for popular roles: ')
+    print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
