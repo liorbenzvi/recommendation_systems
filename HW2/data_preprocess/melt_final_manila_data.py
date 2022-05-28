@@ -1,6 +1,6 @@
 import pandas as pd
 
-from HW2 import ROLES_COLUMNS
+from HW2.data_preprocess.column_types import ROLES_COLUMNS
 
 if __name__ == '__main__':
     print("**************************** read raw data ****************************")
