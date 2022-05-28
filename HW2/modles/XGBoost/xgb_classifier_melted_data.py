@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+
+from HW2.modles.print_results import print_results
 
 
 def get_x_y(df, x_filter, y_filter):
@@ -74,75 +77,6 @@ def clean_dataset(df):
     if 'mispar_ishi' in df:
         df = df.drop(['mispar_ishi'], axis=1)
     return df
-
-
-def print_values_statistics(y):
-    unique, counts = np.unique(y, return_counts=True)
-    d = dict(zip(unique, counts))
-    sum_values = sum(d.values())
-    for i in d.keys():
-        print(f'Percentage of {i} ranks in prediction is: {round((d[i] / sum_values) * 100)}%, amount is {d[i]}')
-    print('\n\n')
-
-
-def print_confusion_matrix(y_pred, y_actual):
-    unique, counts = np.unique(y_pred, return_counts=True)
-    d = dict(zip(unique, counts))
-    merged_y = list(zip(list(y_pred), list(y_actual)))
-    TOTAL_TP = 0
-    TOTAL_FP = 0
-    TOTAL_FN = 0
-    TOTAL_TN = 0
-    TOTAL_COUNT = 0
-    for cls in d.keys():
-        TP = 0
-        FP = 0
-        FN = 0
-        TN = 0
-        count = 0
-        for y_pred, y_actual in merged_y:
-            pred_val = y_pred == cls
-            actual_val = y_actual == cls
-            if pred_val == True and actual_val == True:
-                TP += 1
-                TOTAL_TP += 1
-            if pred_val == True and actual_val == False:
-                FP += 1
-                TOTAL_FP += 1
-            if pred_val == False and actual_val == True:
-                FN += 1
-                TOTAL_FN += 1
-            if pred_val == False and actual_val == False:
-                TN += 1
-                TOTAL_TN += 1
-            TOTAL_COUNT += 1
-            count += 1
-        if count != 0:
-            print(f"For class {cls}: "
-                  f"TP={TP} ({TP / count * 100:.2f}%), "
-                  f"FP={FP} ({FP / count * 100:.2f}%), "
-                  f"FN={FN} ({FN / count * 100:.2f}%), "
-                  f"TN={TN} ({TN / count * 100:.2f}%)")
-
-    print(f"Confusion Matrix for all classes: "
-          f"TP={TOTAL_TP} ({TOTAL_TP / TOTAL_COUNT * 100:.2f}%), "
-          f"FP={TOTAL_FP} ({TOTAL_FP / TOTAL_COUNT * 100:.2f}%), "
-          f"FN={TOTAL_FN} ({TOTAL_FN / TOTAL_COUNT * 100:.2f}%), "
-          f"TN={TOTAL_TN} ({TOTAL_TN / TOTAL_COUNT * 100:.2f}%)")
-
-
-def print_results(y_pred, y_test, clf, df, x_filter, y_train_pred, y_train):
-    total_test = len(y_pred)
-    correct_test = len([i for i, j in zip(y_pred, y_test) if i == j])
-    total_train = len(y_train_pred)
-    train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j])
-    print("Accuracy on Test Set: {0} %".format(str((correct_test / total_test) * 100)))
-    print("Accuracy on Train Set: {0} %".format(str((train_correct / total_train) * 100)))
-    print("y_pred info :\n")
-    df_describe = pd.DataFrame(y_pred)
-    print(df_describe.head())
-    print_values_statistics(y_pred)
-    print_confusion_matrix(y_pred, y_test)
 
 
 def predict_and_train_on_melted_data(train_and_predict_func):
