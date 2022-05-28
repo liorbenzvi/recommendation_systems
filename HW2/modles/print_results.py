@@ -66,6 +66,7 @@ def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
     print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
     print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
     print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    business_metrics(y_pred, y_test, y_train, y_train_pred)
 
     rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
     print("RMSE: {0}".format(str(rmse)))
@@ -214,3 +215,24 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
 
     print('Accuracy for popular roles: ')
     print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
+
+
+def business_metrics(y_pred,y_test, y_train_pred, y_train):
+    calc_wrong(y_pred, y_test)
+    calc_wrong(y_train_pred, y_train)
+
+
+def calc_wrong(y_pred, y_test):
+    total_one_test = len([i for i in y_pred if i == 1])
+    total_three_test = len([i for i in y_pred if i == 3])
+    one_when_three = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == 3])
+    three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 3 and j == 1])
+    print("Total one in test set is: {0},  " +
+          "Total three in test set is: {1}. " +
+          "Predict one when it was three: {2}, " +
+          "Predict three when it was one: {3}. " +
+          "Percentage of wrong ones is: {4}%" +
+          "Percentage of wrong three is: {5}%" +
+          "".format(total_one_test, total_three_test, one_when_three, three_when_one,
+                    str((one_when_three / total_one_test) * 100), str((three_when_one / total_three_test) * 100)))
+
