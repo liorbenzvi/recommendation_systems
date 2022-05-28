@@ -58,14 +58,35 @@ def print_values_statistics(y):
 
 
 def print_results(y_pred, y_test, clf, df, x_filter, y_train_pred, y_train):
+    print_total_acc(y_pred, y_test, y_train, y_train_pred)
+    print_acc_by_class(y_pred, y_test, y_train, y_train_pred)
+
+    rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
+    print("\nRMSE: {0}".format(str(rmse)))
+
+    print("y_pred info :\n")
+    df_describe = pd.DataFrame(y_pred)
+    print(df_describe.head())
+    print_values_statistics(y_pred)
+    print_confusion_matrix(y_pred, y_test)
+
+
+def print_total_acc(y_pred, y_test, y_train, y_train_pred):
     total_test = len(y_pred)
     correct_test = len([i for i, j in zip(y_pred, y_test) if i == j])
     total_train = len(y_train_pred)
     train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j])
     print("Accuracy on Test Set: {0} %".format(str((correct_test / total_test) * 100)))
     print("Accuracy on Train Set: {0} %".format(str((train_correct / total_train) * 100)))
-    print("y_pred info :\n")
-    df_describe = pd.DataFrame(y_pred)
-    print(df_describe.head())
-    print_values_statistics(y_pred)
-    print_confusion_matrix(y_pred, y_test)
+
+
+def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
+    ranks = [100, 0, 1, 2, 3]
+    print("Accuracy by ranks:")
+    for rank in ranks:
+        total_test = len([i for i in y_pred if i == rank])
+        correct_test = len([i for i, j in zip(y_pred, y_test) if i == j and i == rank])
+        total_train = len([i for i in y_train_pred if i == rank])
+        train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j and i == rank])
+        print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
+        print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
