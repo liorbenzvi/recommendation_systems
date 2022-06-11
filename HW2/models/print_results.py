@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-ranks = [-1, 0, 1]
+ranks = [0, 1, 2, 3]
 
 
 def print_confusion_matrix(y_pred, y_actual):
@@ -171,7 +171,7 @@ def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_test_d = []
         for i in range(0, len(y_pred)):
             role = x_train["role"].values[i]
-            if roles_data.at[role, 'cluster'] == c:
+            if roles_data[roles_data["role"] == role]['cluster'].values[0] == c:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
 
@@ -179,7 +179,7 @@ def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_train_d = []
         for i in range(0, len(y_test)):
             role = x_test["role"].values[i]
-            if roles_data.at[role, 'cluster'] == c:
+            if roles_data[roles_data["role"] == role]['cluster'].values[0] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
         print('Accuracy for role cluster: ' + str(c))
@@ -242,14 +242,14 @@ def business_metrics(y_pred,y_test, y_train_pred, y_train):
 
 
 def calc_wrong(y_pred, y_test):
-    total_one_test = len([i for i in y_pred if i == -1])
-    total_three_test = len([i for i in y_pred if i == 1])
-    one_when_three = len([i for i, j in zip(y_pred, y_test) if i == -1 and j == 1])
-    three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == -1])
-    print("Total -1 in test set is: {0},  " +
-          "Total 1 in test set is: {1}. " +
-          "Predict -1 when it was 1: {2}, " +
-          "Predict 1 when it was -1: {3}. " +
+    total_one_test = len([i for i in y_pred if i == 1])
+    total_three_test = len([i for i in y_pred if i == 3])
+    one_when_three = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == 3])
+    three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 3 and j == 1])
+    print("Total 1 in test set is: {0},  " +
+          "Total 3 in test set is: {1}. " +
+          "Predict 1 when it was 1: {2}, " +
+          "Predict 3 when it was -1: {3}. " +
           "Percentage of wrong ones is: {4}%" +
           "Percentage of wrong three is: {5}%" +
           "".format(total_one_test, total_three_test, one_when_three, three_when_one,

@@ -82,10 +82,10 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
 
 def single_round_prediction(singel_pred):
     rounded = round(singel_pred)
-    if rounded > 1:
-        return 1
-    if rounded < -1:
-        return -1
+    if rounded > 3:
+        return 3
+    if rounded < 0:
+        return 0
     return rounded
 
 def round_prediction(pred):
@@ -126,14 +126,15 @@ if __name__ == '__main__':
     manila_data = pd.read_csv("../csv_files/final_manila_data.csv", encoding="UTF-8")
     sparse_data = manila_data.loc[:,
                   'eshkol diagnosis of manpower_the psychotechnical array':'dedicated track_combat communications officer']
-    sparse_data[sparse_data < 3] = -1
-    sparse_data[sparse_data >= 3] = 1
+    sparse_data[sparse_data < 3] = 1
+    sparse_data[sparse_data == 3] = 2
+    sparse_data[sparse_data > 3] = 3
     sparse_data.fillna(0, inplace=True)
 
     users = manila_data[['mispar_ishi']]
     items = sparse_data.columns.values
 
-    long_all = wide_to_long(sparse_data, [-1, 0, 1])
+    long_all = wide_to_long(sparse_data, [0, 1, 2, 3])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
 
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
