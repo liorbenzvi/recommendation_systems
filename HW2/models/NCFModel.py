@@ -10,7 +10,7 @@ from tensorflow.python.keras.layers import Embedding, Flatten, Concatenate, Mult
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.regularizers import l2
 
-from HW2.models.LightFmModel import round_prediction
+from HW2.models.LightFmModel import round_prediction, userid_to_mispar_ishi, get_dapar, itemid_to_item_name
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 from HW2.models.print_results import print_results
 
@@ -181,6 +181,7 @@ if __name__ == '__main__':
     n_items = sparse_data.shape[1]
 
     users = manila_data[['mispar_ishi']]
+    items = sparse_data.columns.values
 
     long_all = wide_to_long(sparse_data, [-1, 0, 1])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
@@ -188,6 +189,26 @@ if __name__ == '__main__':
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]],
                                                         df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
+
+    # create extra data for train
+    mispar_ishi_train = userid_to_mispar_ishi(x_train["user_id"], users)
+    dapar_train = get_dapar(x_train["user_id"], manila_data, "dapar")
+    role_train = itemid_to_item_name(x_train["item_id"], items)
+    x_train_ext = pd.DataFrame()
+    x_train_ext["mispar_ishi"] = mispar_ishi_train
+    x_train_ext["dapar"] = dapar_train.values
+    x_train_ext["roles"] = role_train
+
+    # create extra data for test
+    mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
+    dapar_test = get_dapar(x_test["user_id"], manila_data, "dapar")
+    role_test = itemid_to_item_name(x_test["item_id"], items)
+    x_test_ext = pd.DataFrame()
+    x_test_ext["mispar_ishi"] = mispar_ishi_test
+    x_test_ext["dapar"] = dapar_test.values
+    x_test_ext["roles"] = role_test
+
+
     full_train = pd.DataFrame(pd.concat([x_train, y_train], axis=1), columns=["user_id", "item_id", "interaction"])
     full_test = pd.concat([x_train, y_train], axis=1)
     ds_train, ds_val = make_tf_dataset(full_train, ["interaction"])
@@ -223,4 +244,4 @@ if __name__ == '__main__':
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
 
-    print_results(ncf_predictions, y_test, ncf_train_predictions, y_train, x_train, x_test)
+    print_results(ncf_predictions, y_test, ncf_train_predictions, y_train, x_train_ext, x_test_ext)

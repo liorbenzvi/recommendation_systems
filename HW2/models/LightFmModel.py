@@ -87,6 +87,7 @@ def single_round_prediction(singel_pred):
     if rounded < -1:
         return -1
     return rounded
+
 def round_prediction(pred):
     return [single_round_prediction(x) for x in pred]
 
@@ -94,8 +95,11 @@ def userid_to_mispar_ishi(userid, userid_to_mispar_ishi_dic):
     userid_to_mispar_ishi_dic = userid_to_mispar_ishi_dic.to_dict()["mispar_ishi"]
     return [userid_to_mispar_ishi_dic.get(x) for x in np.array(userid.array)]
 
+def itemid_to_item_name(items_id, items_names_array):
+    return [items_names_array[x] for x in np.array(items_id.array)]
+
 def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
-    return [manila_data[extra_data_col_name].loc[manila_data['mispar_ishi'] == x] for x in mispar_ishi]
+    return manila_data[extra_data_col_name].iloc[mispar_ishi]
 
 
 if __name__ == '__main__':
@@ -116,6 +120,7 @@ if __name__ == '__main__':
     sparse_data.fillna(0, inplace=True)
 
     users = manila_data[['mispar_ishi']]
+    items = sparse_data.columns.values
 
     long_all = wide_to_long(sparse_data, [-1, 0, 1])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
@@ -123,10 +128,26 @@ if __name__ == '__main__':
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
 
+    #create extra data for train
+    mispar_ishi_train = userid_to_mispar_ishi(x_train["user_id"], users)
+    dapar_train = get_dapar(x_train["user_id"], manila_data,"dapar")
+    role_train = itemid_to_item_name(x_train["item_id"], items)
+    x_train_ext = pd.DataFrame()
+    x_train_ext["mispar_ishi"] = mispar_ishi_train
+    x_train_ext["dapar"] = dapar_train.values
+    x_train_ext["roles"] = role_train
+    
+    #create extra data for test
     mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
-   # dapar = get_dapar(mispar_ishi_test, manila_data,"dapar")
-   # x_train_ext = pd.DataFrame([dapar], columns=["dapar"])
-
+    dapar_test = get_dapar(x_test["user_id"], manila_data,"dapar")
+    role_test = itemid_to_item_name(x_test["item_id"], items)
+    x_test_ext = pd.DataFrame()
+    x_test_ext["mispar_ishi"] = mispar_ishi_test
+    x_test_ext["dapar"] = dapar_test.values
+    x_test_ext["roles"] = role_test
+    
+    
+    
     train = pd.concat([x_train, y_train], axis=1)
 
     lightfm_model = LightFM(loss="warp")
@@ -139,4 +160,4 @@ if __name__ == '__main__':
 
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
-    print_results(predictions, y_test, train_predictions, y_train, x_train, x_test)
+    print_results(predictions, y_test, train_predictions, y_train, x_train_ext, x_test_ext)
