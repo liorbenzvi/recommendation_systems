@@ -62,6 +62,8 @@ def print_values_statistics(y):
 
 def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
     print('\n')
+    print('Print metrics, KPIs and measurements: ')
+    print('\n')
     print_total_acc(y_pred, y_test, y_train, y_train_pred)
     print('\n')
     print_acc_by_class(y_pred, y_test, y_train, y_train_pred)

@@ -155,11 +155,16 @@ if __name__ == '__main__':
     x_test_ext = get_extra_data_test_df()
     train = pd.concat([x_train, y_train], axis=1)
 
+    print('Train lightFM')
     lightfm_model = LightFM(loss="warp")
     lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
                                           (x_train["user_id"].array.astype(np.int32),
                                            x_train["item_id"].array.astype(np.int32)))), epochs=1000)
 
+    print('Predict Test: ')
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
+
+    print('Predict Train: ')
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
+
     print_results(predictions, y_test.values, train_predictions, y_train.values, x_train_ext, x_test_ext)
