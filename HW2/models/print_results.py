@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_squared_error
 
 ranks = [0, 1, 2, 3]
 
@@ -75,8 +76,8 @@ def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
     print('\n')
     business_metrics(y_pred, y_test, y_train, y_train_pred)
     print('\n')
-    rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
-    print("RMSE: {0}".format(str(rmse)))
+    rmse = mean_squared_error(y_test, y_pred, squared=False)
+    print("RMSE: " + str(rmse))
     print('\n')
     print_diverse_measure_by_class(y_pred, x_test)
     print('\n')
@@ -191,7 +192,7 @@ def print_diverse_measure_by_class(y_pred, x_test):
     for rank in ranks:
         roles_set = set()
         for i in range(0, len(y_pred)):
-            if i == rank:
+            if y_pred[i] == rank:
                 role = x_test["role"].values[i]
                 roles_set.add(role)
         print('For rank {0}, we have {1} different roles'.format(str(rank), str(len(roles_set))))
@@ -208,7 +209,7 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
         role = x_train["role"].values[i]
         if y_pred[i] == 1:
             count_rank_1 += 1
-        if roles_data.at[role, 'is_popular']:
+        if roles_data[roles_data["role"] == role]['is_popular'].values[0]:
             y_pred_d.append(y_pred[i])
             y_test_d.append(y_test[i])
             if y_pred[i] == 1:
@@ -224,7 +225,7 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
         if y_pred[i] == 1:
             count_rank_1 += 1
         role = x_test["role"].values[i]
-        if roles_data.at[role, 'is_popular']:
+        if roles_data[roles_data["role"] == role]['is_popular'].values[0]:
             y_train_pred_d.append(y_train_pred[i])
             y_train_d.append(y_train[i])
             if y_pred[i] == 1:
@@ -237,7 +238,9 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
 
 
 def business_metrics(y_pred,y_test, y_train_pred, y_train):
+    print('Business metrics for test:')
     calc_wrong(y_pred, y_test)
+    print('Business metrics for train:')
     calc_wrong(y_train_pred, y_train)
 
 
@@ -246,13 +249,14 @@ def calc_wrong(y_pred, y_test):
     total_three_test = len([i for i in y_pred if i == 3])
     one_when_three = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == 3])
     three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 3 and j == 1])
-    print("Total 1 in test set is: {0},  " +
-          "Total 3 in test set is: {1}. " +
-          "Predict 1 when it was 1: {2}, " +
-          "Predict 3 when it was -1: {3}. " +
-          "Percentage of wrong ones is: {4}%" +
-          "Percentage of wrong three is: {5}%" +
-          "".format(total_one_test, total_three_test, one_when_three, three_when_one,
-                    str(round((one_when_three / total_one_test) * 100, 2)),
-                    str(round((three_when_one / total_three_test) * 100, 2))))
+    print("Total 1 in test set is: " + str(total_one_test) + ".")
+    print("Total 3 in test set is: " + str(total_three_test) + ".")
+    print("Predict 1 when it was 3: " + str(one_when_three) + ".")
+    print("Predict 3 when it was 1: " + str(three_when_one) + ".")
+    print("Percentage of wrong ones is: " + str(round((one_when_three / total_one_test) * 100, 2)) +  ".")
+    print("Percentage of wrong three is: " + str(round((three_when_one / total_three_test) * 100, 2)) + ".")
+
+
+
+
 

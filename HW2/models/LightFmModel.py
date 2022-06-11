@@ -157,7 +157,7 @@ if __name__ == '__main__':
     lightfm_model = LightFM(loss="warp")
     lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
                                           (x_train["user_id"].array.astype(np.int32),
-                                           x_train["item_id"].array.astype(np.int32)))), epochs=50)
+                                           x_train["item_id"].array.astype(np.int32)))), epochs=2000)
 
 
     #dapar = manila_data[manila_data.iloc()]
