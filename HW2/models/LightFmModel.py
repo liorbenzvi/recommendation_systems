@@ -145,8 +145,7 @@ if __name__ == '__main__':
     x_test_ext["mispar_ishi"] = mispar_ishi_test
     x_test_ext["dapar"] = dapar_test.values
     x_test_ext["roles"] = role_test
-    
-    
+
     
     train = pd.concat([x_train, y_train], axis=1)
 
@@ -160,4 +159,4 @@ if __name__ == '__main__':
 
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
-    print_results(predictions, y_test, train_predictions, y_train, x_train_ext, x_test_ext)
+    print_results(predictions, y_test.values, train_predictions, y_train.values, x_train_ext, x_test_ext)

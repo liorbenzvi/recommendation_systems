@@ -244,4 +244,4 @@ if __name__ == '__main__':
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
 
-    print_results(ncf_predictions, y_test, ncf_train_predictions, y_train, x_train_ext, x_test_ext)
+    print_results(ncf_predictions, y_test.values, ncf_train_predictions, y_train.values, x_train_ext, x_test_ext)
