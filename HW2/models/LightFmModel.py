@@ -168,13 +168,13 @@ if __name__ == '__main__':
     lightfm_model = LightFM(loss="warp")
     lightfm_model.fit(sparse.coo_matrix((y_train["interaction"].array.astype(np.int32),
                                          (x_train["user_id"].array.astype(np.int32),
-                                          x_train["item_id"].array.astype(np.int32)))), epochs=1000)
+                                          x_train["item_id"].array.astype(np.int32)))), epochs=2000)
 
-    print('Predict Test: ')
+    print('Predict Test')
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32),
                                                          x_test["item_id"].array.astype(np.int32)))
 
-    print('Predict Train: ')
+    print('Predict Train')
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32),
                                                                x_train["item_id"].array.astype(np.int32)))
 
