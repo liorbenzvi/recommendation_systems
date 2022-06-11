@@ -82,12 +82,19 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
 
 
 def round_prediction(pred):
-    rounded = round(pred)
+    rounded = np.round(pred)
     if rounded > 1:
         return 1
     if rounded < -1:
         return -1
     return rounded
+
+def userid_to_mispar_ishi(userid, userid_to_mispar_ishi_dic):
+    userid_to_mispar_ishi_dic = userid_to_mispar_ishi_dic.to_dict()["mispar_ishi"]
+    return [userid_to_mispar_ishi_dic.get(x) for x in np.array(userid.array)]
+
+def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
+    return [manila_data[extra_data_col_name].loc[manila_data['mispar_ishi'] == x] for x in mispar_ishi]
 
 
 if __name__ == '__main__':
@@ -114,12 +121,20 @@ if __name__ == '__main__':
 
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
+
+    mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
+    dapar = get_dapar(mispar_ishi_test, manila_data,"dapar")
+    x_train_ext =  pd.DataFrame([dapar], columns=["dapar"])
+
     train = pd.concat([x_train, y_train], axis=1)
 
     lightfm_model = LightFM(loss="warp")
     lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
                                           (x_train["user_id"].array.astype(np.int32),
                                            x_train["item_id"].array.astype(np.int32)))), epochs=50)
+
+
+    #dapar = manila_data[manila_data.iloc()]
 
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
