@@ -11,22 +11,23 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.regularizers import l2
 
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
+from HW2.models.print_results import print_results
 
 TOP_K = 5
-N_EPOCHS = 10
+N_EPOCHS = 50
+
 
 def create_ncf(
-    number_of_users: int,
-    number_of_items: int,
-    latent_dim_mf: int = 4,
-    latent_dim_mlp: int = 32,
-    reg_mf: int = 0,
-    reg_mlp: int = 0.01,
-    dense_layers: List[int] = [8, 4],
-    reg_layers: List[int] = [0.01, 0.01],
-    activation_dense: str = "relu",
+        number_of_users: int,
+        number_of_items: int,
+        latent_dim_mf: int = 4,
+        latent_dim_mlp: int = 32,
+        reg_mf: int = 0,
+        reg_mlp: int = 0.01,
+        dense_layers: List[int] = [8, 4],
+        reg_layers: List[int] = [0.01, 0.01],
+        activation_dense: str = "relu",
 ) -> keras.Model:
-
     # input layer
     user = Input(shape=(), dtype="int32", name="user_id")
     item = Input(shape=(), dtype="int32", name="item_id")
@@ -105,11 +106,11 @@ def create_ncf(
 
 
 def make_tf_dataset(
-    df: pd.DataFrame,
-    targets: List[str],
-    val_split: float = 0.1,
-    batch_size: int = 512,
-    seed=42,
+        df: pd.DataFrame,
+        targets: List[str],
+        val_split: float = 0.1,
+        batch_size: int = 512,
+        seed=42,
 ):
     """Make TensorFlow dataset from Pandas DataFrame.
     :param df: input DataFrame - only contains features and target(s)
@@ -145,6 +146,7 @@ def prepare_df():
     print("df is ready!")
     return df
 
+
 def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
     """Go from wide table to long.
     :param wide: wide array with user-item interactions
@@ -165,8 +167,8 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
 
     return np.vstack(long_arrays)
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     manila_data = pd.read_csv("../csv_files/final_manila_data.csv", encoding="UTF-8")
 
     sparse_data = manila_data.loc[:,
@@ -183,7 +185,8 @@ if __name__ == '__main__':
     long_all = wide_to_long(sparse_data, [-1, 0, 1])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
 
-    x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
+    x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]],
+                                                        df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
     full_train = pd.DataFrame(pd.concat([x_train, y_train], axis=1), columns=["user_id", "item_id", "interaction"])
     full_test = pd.concat([x_train, y_train], axis=1)
@@ -216,5 +219,8 @@ if __name__ == '__main__':
     df_test = pd.DataFrame(full_test, columns=["user_id", "item_id", "interaction"])
     ds_test, _ = make_tf_dataset(df_test, ["interaction"], val_split=0, seed=None)
     ncf_predictions = ncf_model.predict(ds_test)
+    ncf_train_predictions = ncf_model.predict(ds_train)
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
+
+    print_results(ncf_predictions, y_test, ncf_train_predictions, y_train, x_train, x_test)
