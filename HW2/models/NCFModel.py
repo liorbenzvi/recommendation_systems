@@ -1,14 +1,8 @@
-from scipy import sparse
 from typing import List
-import datetime
-import os
 
-import lightfm
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from lightfm import LightFM
-from lightfm.datasets import fetch_movielens
 from sklearn.model_selection import train_test_split
 from tensorflow.python import keras
 from tensorflow.python.keras import Model, Input
@@ -16,9 +10,7 @@ from tensorflow.python.keras.layers import Embedding, Flatten, Concatenate, Mult
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.regularizers import l2
 
-from HW2.add_uniq_featurs.create_features_based_on_kmode_main import get_full_roles_df, add_clusters_to_roles_data, \
-    get_full_users_df, train_kmode
-from HW2.modles.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
+from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 
 TOP_K = 5
 N_EPOCHS = 10

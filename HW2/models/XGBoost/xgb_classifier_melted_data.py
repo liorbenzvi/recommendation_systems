@@ -4,7 +4,7 @@ from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
-from HW2.modles.print_results import print_results
+from HW2.models.print_results import print_results
 
 
 def get_x_y(df, x_filter, y_filter):
