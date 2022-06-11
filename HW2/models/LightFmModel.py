@@ -108,8 +108,9 @@ if __name__ == '__main__':
     train = pd.concat([x_train, y_train], axis=1)
 
     lightfm_model = LightFM(loss="warp")
-    lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32), (x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))),
-                      epochs=50)
+    lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
+                                          (x_train["user_id"].array.astype(np.int32),
+                                           x_train["item_id"].array.astype(np.int32)))), epochs=50)
 
     predictions = lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32))
     train_predictions = lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32))

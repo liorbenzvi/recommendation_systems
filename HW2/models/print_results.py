@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-ranks = [100, 0, 1, 2, 3]
+ranks = [-1, 0, 1]
 
 
 def print_confusion_matrix(y_pred, y_actual):
@@ -97,7 +97,10 @@ def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
         correct_test = len([i for i, j in zip(y_pred, y_test) if i == j and i == rank])
         total_train = len([i for i in y_train_pred if i == rank])
         train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j and i == rank])
-        print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
+        if total_test != 0:
+            print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
+        else:
+            print('no results in this rank')
         print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
 
 
@@ -223,14 +226,14 @@ def business_metrics(y_pred,y_test, y_train_pred, y_train):
 
 
 def calc_wrong(y_pred, y_test):
-    total_one_test = len([i for i in y_pred if i == 1])
-    total_three_test = len([i for i in y_pred if i == 3])
-    one_when_three = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == 3])
-    three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 3 and j == 1])
-    print("Total one in test set is: {0},  " +
-          "Total three in test set is: {1}. " +
-          "Predict one when it was three: {2}, " +
-          "Predict three when it was one: {3}. " +
+    total_one_test = len([i for i in y_pred if i == -1])
+    total_three_test = len([i for i in y_pred if i == 1])
+    one_when_three = len([i for i, j in zip(y_pred, y_test) if i == -1 and j == 1])
+    three_when_one = len([i for i, j in zip(y_pred, y_test) if i == 1 and j == -1])
+    print("Total -1 in test set is: {0},  " +
+          "Total 1 in test set is: {1}. " +
+          "Predict -1 when it was 1: {2}, " +
+          "Predict 1 when it was -1: {3}. " +
           "Percentage of wrong ones is: {4}%" +
           "Percentage of wrong three is: {5}%" +
           "".format(total_one_test, total_three_test, one_when_three, three_when_one,
