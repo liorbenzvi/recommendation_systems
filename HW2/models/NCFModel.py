@@ -13,7 +13,6 @@ from tensorflow.python.keras.regularizers import l2
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 from HW2.models.print_results import print_results
 
-TOP_K = 5
 N_EPOCHS = 50
 
 
