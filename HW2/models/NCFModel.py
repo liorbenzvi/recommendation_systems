@@ -15,7 +15,7 @@ from HW2.models.LightFmModel import round_prediction, userid_to_mispar_ishi, get
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 from HW2.models.print_results import print_results
 
-N_EPOCHS = 10
+N_EPOCHS = 20
 
 
 
@@ -94,7 +94,7 @@ def create_ncf(
     predict_layer = Concatenate()([mf_cat_latent, mlp_vector])
 
     after_sig = Dense(
-        1, activation="sigmoid", kernel_initializer="lecun_uniform", name="fc"
+        1, activation="sigmoid", kernel_initializer="lecun_uniform", name="interaction"
     )
 
     output = after_sig(predict_layer)
@@ -151,18 +151,20 @@ def prepare_df():
     return df
 
 
-def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
+def wide_to_long(wide: np.array, possible_ratings: List[int], norm: False) -> np.array:
     """Go from wide table to long.
     :param wide: wide array with user-item interactions
-    :param possible_ratings: list of possible ratings that we may have."""
+    :param possible_ratings: list of possible ratings that we may have.
+    :param norm: norm the output to 0 to 1."""
 
     def _get_ratings(arr: np.array, rating: int) -> np.array:
         """Generate long array for the rating provided
         :param arr: wide array with user-item interactions
         :param rating: the rating that we are interested"""
+        div = 3 if norm else 1
         idx = np.where(arr == rating)
         return np.vstack(
-            (idx[0], idx[1], np.ones(idx[0].size, dtype="int8") * rating)
+            (idx[0], idx[1], np.ones(idx[0].size, dtype="int8") * rating/div)
         ).T
 
     long_arrays = []
@@ -188,7 +190,7 @@ if __name__ == '__main__':
     users = manila_data[['mispar_ishi']]
     items = sparse_data.columns.values
 
-    long_all = wide_to_long(sparse_data, [0, 1, 2, 3])
+    long_all = wide_to_long(sparse_data, [0, 1, 2, 3], True)
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
 
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]],
@@ -230,10 +232,11 @@ if __name__ == '__main__':
     df_test = pd.DataFrame(full_test, columns=["user_id", "item_id", "interaction"])
     ds_test, _ = make_tf_dataset(df_test, ["interaction"], val_split=0, seed=None)
     pred_test = ncf_model.predict(ds_test)
-    ncf_predictions = round_prediction(pred_test)
+    ncf_predictions = round_prediction(pred_test*3)
     pred_train = ncf_model.predict(ds_train)
-    ncf_train_predictions = round_prediction(pred_train)
+    ncf_train_predictions = round_prediction(pred_train*3)
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
 
-    print_results(ncf_predictions, y_test.values, ncf_train_predictions, y_train.values, x_train_ext, x_test_ext)
+    print_results(ncf_predictions, y_test.values*3, ncf_train_predictions,
+                  y_train.values*3, x_train_ext, x_test_ext)

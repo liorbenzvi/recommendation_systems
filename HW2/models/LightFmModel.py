@@ -103,7 +103,7 @@ def userid_to_mispar_ishi(userid, userid_to_mispar_ishi_dic):
 
 
 def itemid_to_item_name(items_id, items_names_array):
-    return [items_names_array[x] for x in np.array(items_id.array)]
+    return [items_names_array[x] for x in np.array(items_id.array, dtype=int)]
 
 
 def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
