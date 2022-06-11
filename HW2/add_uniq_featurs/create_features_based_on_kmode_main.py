@@ -1,6 +1,11 @@
 import numpy as np
 import pandas as pd
 from kmodes.kmodes import KModes
+from sklearn.decomposition import PCA
+import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 from HW2.data_preprocess.columns_addition import get_only_roles_columns
 
@@ -22,6 +27,35 @@ def train_kmode(df, k):
     kmode = KModes(n_clusters=k, init="random", n_init=5, verbose=1)
     clusters = kmode.fit_predict(df)
     df.insert(0, "cluster", clusters, True)
+
+def train_pca(df, k):
+    pca = PCA(n_components=7)
+    pca.fit(df.T)
+    exp_var_cumul = np.cumsum(pca.explained_variance_ratio_)
+
+    fig = px.area(
+        x=range(1, exp_var_cumul.shape[0] + 1),
+        y=exp_var_cumul,
+        labels={"x": "# Components", "y": "Explained Variance"}
+    )
+    fig.show()
+
+    # creating the dataset
+    data = pca.explained_variance_ratio_
+    values = list(data)
+
+    # creating the bar plot
+    plt.barh(np.arange(len(values)), values)
+    for index, value in enumerate(values):
+        plt.text(value, index, round(value ,2))
+
+    plt.xlabel("PCAs")
+    plt.ylabel("explained_variance_ratio")
+    plt.show()
+
+
+    new_data = pca.fit_transform(df)
+    return new_data
 
 
 def get_full_users_df():
@@ -51,4 +85,6 @@ if __name__ == '__main__':
     users_df = get_full_users_df()
     users_df = users_df.fillna(0)
     train_kmode(users_df, 10)
+    train_pca(users_df,3)
+
     users_df.to_csv('../csv_files/users_data/full_users_data.csv', encoding="utf-8")
