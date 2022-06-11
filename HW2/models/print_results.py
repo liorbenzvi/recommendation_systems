@@ -86,8 +86,8 @@ def print_total_acc(y_pred, y_test, y_train, y_train_pred):
     correct_test = len([i for i, j in zip(y_pred, y_test) if i == j])
     total_train = len(y_train_pred)
     train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j])
-    print("Accuracy on Test Set: {0} %".format(str((correct_test / total_test) * 100)))
-    print("Accuracy on Train Set: {0} %".format(str((train_correct / total_train) * 100)))
+    print("Accuracy on Test Set: {0} %".format(str(round((correct_test / total_test) * 100, 2))))
+    print("Accuracy on Train Set: {0} %".format(str(round((train_correct / total_train) * 100, 2))))
 
 
 def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
@@ -99,11 +99,13 @@ def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
         total_train = len([i for i in y_train_pred if i == rank])
         train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j and i == rank])
         if total_test != 0:
-            print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
+            print("Accuracy on Test Set for rank {0}: {1} %".format
+                  (str(rank), str(round(correct_test / total_test) * 100, 2)))
         else:
             print('no results in total_test for this rank')
         if total_train != 0:
-            print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
+            print("Accuracy on Train Set for rank {0}: {1} %".format(
+                str(rank), str(round((train_correct / total_train) * 100, 2))))
         else:
             print('no results in total_train for this rank')
 
@@ -136,7 +138,7 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_test_d = []
         for i in range(0, len(y_pred)):
             user = x_train["mispar_ishi"].values[i]
-            if user_data["cluster"].values[user] == c:
+            if user_data["cluster"].values[user-1] == c:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
 
@@ -144,7 +146,7 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_train_d = []
         for i in range(0, len(y_test)):
             user = x_test["mispar_ishi"].values[i]
-            if user_data["cluster"].values[user] == c:
+            if user_data["cluster"].values[user-1] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
         print('Accuracy for user cluster: ' + str(c))
@@ -241,5 +243,6 @@ def calc_wrong(y_pred, y_test):
           "Percentage of wrong ones is: {4}%" +
           "Percentage of wrong three is: {5}%" +
           "".format(total_one_test, total_three_test, one_when_three, three_when_one,
-                    str((one_when_three / total_one_test) * 100), str((three_when_one / total_three_test) * 100)))
+                    str(round((one_when_three / total_one_test) * 100, 2)),
+                    str(round((three_when_one / total_three_test) * 100, 2))))
 
