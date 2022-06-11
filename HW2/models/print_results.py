@@ -114,14 +114,14 @@ def print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_t
         y_pred_d = []
         y_test_d = []
         for i in range(0, len(y_pred)):
-            if x_train["dapar"].iloc(i) == d:
+            if x_train["dapar"].values[i] == d:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
 
         y_train_pred_d = []
         y_train_d = []
         for i in range(0, len(y_test)):
-            if x_test["dapar"].iloc(i) == d:
+            if x_test["dapar"].values[i] == d:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
         print('Accuracy for dapar class: ' + str(d))
