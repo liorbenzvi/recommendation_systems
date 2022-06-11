@@ -135,16 +135,16 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_pred_d = []
         y_test_d = []
         for i in range(0, len(y_pred)):
-            user = x_train["mispar_ishi"].iloc(i)
-            if user_data["cluster"].iloc(user) == c:
+            user = x_train["mispar_ishi"].values[i]
+            if user_data["cluster"].values[user] == c:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
 
         y_train_pred_d = []
         y_train_d = []
         for i in range(0, len(y_test)):
-            user = x_test["mispar_ishi"].iloc(i)
-            if user_data["cluster"].iloc(user) == c:
+            user = x_test["mispar_ishi"].values[i]
+            if user_data["cluster"].values[user] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
         print('Accuracy for user cluster: ' + str(c))
@@ -158,7 +158,7 @@ def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_pred_d = []
         y_test_d = []
         for i in range(0, len(y_pred)):
-            role = x_train["role"].iloc(i)
+            role = x_train["role"].values[i]
             if roles_data.at[role, 'cluster'] == c:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
@@ -166,7 +166,7 @@ def print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_train_pred_d = []
         y_train_d = []
         for i in range(0, len(y_test)):
-            role = x_test["role"].iloc(i)
+            role = x_test["role"].values[i]
             if roles_data.at[role, 'cluster'] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
@@ -180,7 +180,7 @@ def print_diverse_measure_by_class(y_pred, x_test):
         roles_set = set()
         for i in range(0, len(y_pred)):
             if i == rank:
-                role = x_test["role"].iloc(i)
+                role = x_test["role"].values[i]
                 roles_set.add(role)
         print('For rank {0}, we have {1} different roles'.format(str(rank), str(len(roles_set))))
 
@@ -193,7 +193,7 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
     count_rank_1 = 0
     count_rank_1_and_popular = 0
     for i in range(0, len(y_pred)):
-        role = x_train["role"].iloc(i)
+        role = x_train["role"].values[i]
         if y_pred[i] == 1:
             count_rank_1 += 1
         if roles_data.at[role, 'is_popular']:
@@ -211,7 +211,7 @@ def print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x
     for i in range(0, len(y_test)):
         if y_pred[i] == 1:
             count_rank_1 += 1
-        role = x_test["role"].iloc(i)
+        role = x_test["role"].values[i]
         if roles_data.at[role, 'is_popular']:
             y_train_pred_d.append(y_train_pred[i])
             y_train_d.append(y_train[i])
