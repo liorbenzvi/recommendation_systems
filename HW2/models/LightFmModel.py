@@ -5,10 +5,59 @@ import numpy as np
 import pandas as pd
 from lightfm import LightFM
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 
 from HW2.add_uniq_featurs.create_features_based_on_kmode_main import get_full_roles_df, add_clusters_to_roles_data, \
-    get_full_users_df
+    get_full_users_df, train_kmode
 from HW2.models.print_results import print_results
+
+def convert_category_variables(df):
+    season_variables_lst = ['born_in_season', 'fill_in_season']
+    for category_variable in season_variables_lst:
+        mapping = {"winter": 0.0, "fall": 1.0, "summer": 2.0, "spring": 3.0}
+        df[category_variable] = df[category_variable].map(mapping)
+    profil_mapping = {21: 0.0, 24: 1.0, 25: 2.0, 45: 3.0, 64: 4.0, 72: 5.0, 82: 6.0, 97: 7.0}
+    df['profil'] = df['profil'].map(profil_mapping)
+    choice_mapping = {1.0: 1.0, 2.0: 1.0, 3.0: 2.0, 4.0: 3.0, 5.0: 3.0, 100.0: 100.0}
+    if 'choice_value' in df:
+        df['choice_value'] = df['choice_value'].map(choice_mapping)
+    return df
+
+def clean_dataset(df):
+    df = df.replace((np.inf, -np.inf, np.nan, "-", "..", "_"), 0.0).reset_index(drop=True)
+    df = df.drop(['decoded_towns'], axis=1)
+    if 'mispar_ishi' in df:
+        df = df.drop(['mispar_ishi'], axis=1)
+    return df
+
+
+def label_encoding(df):
+    le = preprocessing.LabelEncoder()
+    cols_for_transform = ['role', 'cluster', 'role_name']
+    for col in cols_for_transform:
+        df[col] = le.fit_transform(df[col])
+
+
+def manual_category_convert(df):
+    df = convert_category_variables(df)
+    mapping = {"general": 0.0, "air": 1.0, "navy": 2.0, "ground": 3.0}
+    df['force'] = df['force'].map(mapping)
+    text_cols = ['is_technological', 'is_physical', 'is_leadership']
+    txt_mapping = {"no": 0.0, "yes": 1.0}
+    for col in text_cols:
+        df[col] = df[col].map(txt_mapping)
+    return df
+
+def prepare_df():
+    df = pd.read_csv("../../csv_files/melt_final_manila_data.csv", encoding="UTF-8")
+    print("finished to read data")
+    df = manual_category_convert(df)
+    print("finished to convert category variables")
+    df = clean_dataset(df)
+    print("finished to clean data")
+    label_encoding(df)
+    print("df is ready!")
+    return df
 
 
 def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
