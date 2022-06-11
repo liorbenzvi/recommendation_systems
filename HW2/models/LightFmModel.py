@@ -80,14 +80,15 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
 
     return np.vstack(long_arrays)
 
-
-def round_prediction(pred):
-    rounded = np.round(pred)
+def single_round_prediction(singel_pred):
+    rounded = round(singel_pred)
     if rounded > 1:
         return 1
     if rounded < -1:
         return -1
     return rounded
+def round_prediction(pred):
+    return [single_round_prediction(x) for x in pred]
 
 def userid_to_mispar_ishi(userid, userid_to_mispar_ishi_dic):
     userid_to_mispar_ishi_dic = userid_to_mispar_ishi_dic.to_dict()["mispar_ishi"]
@@ -99,7 +100,7 @@ def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
 
 if __name__ == '__main__':
     # roles:
-    roles_data = get_full_roles_df()
+    roles_data = pd.read_csv("../csv_files/roles_data/full_roles_data.csv", encoding="UTF-8")
     roles_data = roles_data.fillna(0)
     add_clusters_to_roles_data(roles_data)
     n_items = roles_data.shape[0]
@@ -123,8 +124,8 @@ if __name__ == '__main__':
                                                         test_size=0.2, random_state=1)
 
     mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
-    dapar = get_dapar(mispar_ishi_test, manila_data,"dapar")
-    x_train_ext =  pd.DataFrame([dapar], columns=["dapar"])
+   # dapar = get_dapar(mispar_ishi_test, manila_data,"dapar")
+   # x_train_ext = pd.DataFrame([dapar], columns=["dapar"])
 
     train = pd.concat([x_train, y_train], axis=1)
 
