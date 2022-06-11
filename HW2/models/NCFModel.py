@@ -10,6 +10,7 @@ from tensorflow.python.keras.layers import Embedding, Flatten, Concatenate, Mult
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.regularizers import l2
 
+from HW2.models.LightFmModel import round_prediction
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 from HW2.models.print_results import print_results
 
@@ -217,8 +218,8 @@ if __name__ == '__main__':
 
     df_test = pd.DataFrame(full_test, columns=["user_id", "item_id", "interaction"])
     ds_test, _ = make_tf_dataset(df_test, ["interaction"], val_split=0, seed=None)
-    ncf_predictions = ncf_model.predict(ds_test)
-    ncf_train_predictions = ncf_model.predict(ds_train)
+    ncf_predictions = round_prediction(ncf_model.predict(ds_test))
+    ncf_train_predictions = round_prediction(ncf_model.predict(ds_train))
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
 

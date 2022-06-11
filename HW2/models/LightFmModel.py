@@ -81,6 +81,15 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
     return np.vstack(long_arrays)
 
 
+def round_prediction(pred):
+    rounded = round(pred)
+    if rounded > 1:
+        return 1
+    if rounded < -1:
+        return -1
+    return rounded
+
+
 if __name__ == '__main__':
     # roles:
     roles_data = get_full_roles_df()
@@ -112,6 +121,6 @@ if __name__ == '__main__':
                                           (x_train["user_id"].array.astype(np.int32),
                                            x_train["item_id"].array.astype(np.int32)))), epochs=50)
 
-    predictions = lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32))
-    train_predictions = lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32))
+    predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
+    train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
     print_results(predictions, y_test, train_predictions, y_train, x_train, x_test)
