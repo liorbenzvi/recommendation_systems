@@ -8,8 +8,9 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
 from HW2.add_uniq_featurs.create_features_based_on_kmode_main import get_full_roles_df, add_clusters_to_roles_data, \
-    get_full_users_df, train_kmode
+    get_full_users_df
 from HW2.models.print_results import print_results
+
 
 def convert_category_variables(df):
     season_variables_lst = ['born_in_season', 'fill_in_season']
@@ -22,6 +23,7 @@ def convert_category_variables(df):
     if 'choice_value' in df:
         df['choice_value'] = df['choice_value'].map(choice_mapping)
     return df
+
 
 def clean_dataset(df):
     df = df.replace((np.inf, -np.inf, np.nan, "-", "..", "_"), 0.0).reset_index(drop=True)
@@ -47,6 +49,7 @@ def manual_category_convert(df):
     for col in text_cols:
         df[col] = df[col].map(txt_mapping)
     return df
+
 
 def prepare_df():
     df = pd.read_csv("../../csv_files/melt_final_manila_data.csv", encoding="UTF-8")
@@ -80,6 +83,7 @@ def wide_to_long(wide: np.array, possible_ratings: List[int]) -> np.array:
 
     return np.vstack(long_arrays)
 
+
 def single_round_prediction(singel_pred):
     rounded = round(singel_pred)
     if rounded > 3:
@@ -88,15 +92,19 @@ def single_round_prediction(singel_pred):
         return 0
     return rounded
 
+
 def round_prediction(pred):
     return [single_round_prediction(x) for x in pred]
+
 
 def userid_to_mispar_ishi(userid, userid_to_mispar_ishi_dic):
     userid_to_mispar_ishi_dic = userid_to_mispar_ishi_dic.to_dict()["mispar_ishi"]
     return [userid_to_mispar_ishi_dic.get(x) for x in np.array(userid.array)]
 
+
 def itemid_to_item_name(items_id, items_names_array):
     return [items_names_array[x] for x in np.array(items_id.array)]
+
 
 def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
     return manila_data[extra_data_col_name].iloc[mispar_ishi]
@@ -125,15 +133,17 @@ def get_extra_data_train_df():
 
 
 if __name__ == '__main__':
-    # roles:
+    print('Prepare roles data')
     roles_data = pd.read_csv("../csv_files/roles_data/full_roles_data.csv", encoding="UTF-8")
     roles_data = roles_data.fillna(0)
-    # add_clusters_to_roles_data(roles_data)
     n_items = roles_data.shape[0]
-    # users:
+
+    print('Prepare users data')
     users_df = get_full_users_df()
     users_df = users_df.fillna(0)
     n_users = users_df.shape[0]
+
+    print('Prepare sparse data')
     manila_data = pd.read_csv("../csv_files/final_manila_data.csv", encoding="UTF-8")
     sparse_data = manila_data.loc[:,
                   'eshkol diagnosis of manpower_the psychotechnical array':'dedicated track_combat communications officer']
@@ -141,30 +151,31 @@ if __name__ == '__main__':
     sparse_data[sparse_data == 3] = 2
     sparse_data[sparse_data > 3] = 3
     sparse_data.fillna(0, inplace=True)
-
     users = manila_data[['mispar_ishi']]
     items = sparse_data.columns.values
-
     long_all = wide_to_long(sparse_data, [0, 1, 2, 3])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
 
-    x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
+    print('Split to train and test')
+    x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]],
+                                                        df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
-
     x_train_ext = get_extra_data_train_df()
     x_test_ext = get_extra_data_test_df()
     train = pd.concat([x_train, y_train], axis=1)
 
     print('Train lightFM')
     lightfm_model = LightFM(loss="warp")
-    lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
-                                          (x_train["user_id"].array.astype(np.int32),
-                                           x_train["item_id"].array.astype(np.int32)))), epochs=1000)
+    lightfm_model.fit(sparse.coo_matrix((y_train["interaction"].array.astype(np.int32),
+                                         (x_train["user_id"].array.astype(np.int32),
+                                          x_train["item_id"].array.astype(np.int32)))), epochs=1000)
 
     print('Predict Test: ')
-    predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
+    predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32),
+                                                         x_test["item_id"].array.astype(np.int32)))
 
     print('Predict Train: ')
-    train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
+    train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32),
+                                                               x_train["item_id"].array.astype(np.int32)))
 
     print_results(predictions, y_test.values, train_predictions, y_train.values, x_train_ext, x_test_ext)
