@@ -60,25 +60,34 @@ def print_values_statistics(y):
 
 
 def print_results(y_pred, y_test, y_train_pred, y_train, x_train, x_test):
+    print('\n\n')
     print_total_acc(y_pred, y_test, y_train, y_train_pred)
+    print('\n\n')
     print_acc_by_class(y_pred, y_test, y_train, y_train_pred)
+    print('\n\n')
     print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print('\n\n')
     print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print('\n\n')
     print_acc_by_role_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print('\n\n')
     print_acc_for_popular_role(y_pred, y_test, y_train, y_train_pred, x_train, x_test)
+    print('\n\n')
     business_metrics(y_pred, y_test, y_train, y_train_pred)
-
+    print('\n\n')
     rmse = np.sqrt(((np.array(y_pred) - np.array(y_test)) ** 2).mean())
     print("RMSE: {0}".format(str(rmse)))
-
+    print('\n\n')
     print_diverse_measure_by_class(y_pred, x_test)
-
     print('\n\n')
     print("y_pred info :\n")
     df_describe = pd.DataFrame(y_pred)
     print(df_describe.head())
+    print('\n\n')
     print_values_statistics(y_pred)
+    print('\n\n')
     print_confusion_matrix(y_pred, y_test)
+    print('The end :)')
 
 
 def print_total_acc(y_pred, y_test, y_train, y_train_pred):
@@ -149,6 +158,7 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
             if user_data[user_data["mispar_ishi"] == user]['cluster'].values[0] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
+
         print('Accuracy for user cluster: ' + str(c))
         print_total_acc(y_pred_d, y_test_d, y_train_d, y_train_pred_d)
 
