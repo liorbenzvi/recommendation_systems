@@ -197,7 +197,7 @@ if __name__ == '__main__':
     x_train_ext = pd.DataFrame()
     x_train_ext["mispar_ishi"] = mispar_ishi_train
     x_train_ext["dapar"] = dapar_train.values
-    x_train_ext["roles"] = role_train
+    x_train_ext["role"] = role_train
 
     # create extra data for test
     mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     x_test_ext = pd.DataFrame()
     x_test_ext["mispar_ishi"] = mispar_ishi_test
     x_test_ext["dapar"] = dapar_test.values
-    x_test_ext["roles"] = role_test
+    x_test_ext["role"] = role_test
 
 
     full_train = pd.DataFrame(pd.concat([x_train, y_train], axis=1), columns=["user_id", "item_id", "interaction"])

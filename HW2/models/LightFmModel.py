@@ -102,6 +102,17 @@ def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
     return manila_data[extra_data_col_name].iloc[mispar_ishi]
 
 
+def get_extra_data_df():
+    mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
+    dapar_test = get_dapar(x_test["user_id"], manila_data, "dapar")
+    role_test = itemid_to_item_name(x_test["item_id"], items)
+    x_test_ext = pd.DataFrame()
+    x_test_ext["mispar_ishi"] = mispar_ishi_test
+    x_test_ext["dapar"] = dapar_test.values
+    x_test_ext["role"] = role_test
+    return x_test_ext
+
+
 if __name__ == '__main__':
     # roles:
     roles_data = pd.read_csv("../csv_files/roles_data/full_roles_data.csv", encoding="UTF-8")
@@ -135,18 +146,11 @@ if __name__ == '__main__':
     x_train_ext = pd.DataFrame()
     x_train_ext["mispar_ishi"] = mispar_ishi_train
     x_train_ext["dapar"] = dapar_train.values
-    x_train_ext["roles"] = role_train
+    x_train_ext["role"] = role_train
     
     #create extra data for test
-    mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
-    dapar_test = get_dapar(x_test["user_id"], manila_data,"dapar")
-    role_test = itemid_to_item_name(x_test["item_id"], items)
-    x_test_ext = pd.DataFrame()
-    x_test_ext["mispar_ishi"] = mispar_ishi_test
-    x_test_ext["dapar"] = dapar_test.values
-    x_test_ext["roles"] = role_test
+    x_test_ext = get_extra_data_df()
 
-    
     train = pd.concat([x_train, y_train], axis=1)
 
     lightfm_model = LightFM(loss="warp")
