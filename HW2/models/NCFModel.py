@@ -6,15 +6,17 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.python import keras
 from tensorflow.python.keras import Model, Input
-from tensorflow.python.keras.layers import Embedding, Flatten, Concatenate, Multiply, Dense
+from tensorflow.python.keras.layers import Embedding, Flatten, Concatenate, Multiply, Dense, Lambda
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.regularizers import l2
 
-from HW2.models.LightFmModel import round_prediction, userid_to_mispar_ishi, get_dapar, itemid_to_item_name
+from HW2.models.LightFmModel import round_prediction, userid_to_mispar_ishi, get_dapar, itemid_to_item_name, \
+    get_extra_data_df
 from HW2.models.XGBoost.xgb_classifier_melted_data import manual_category_convert, label_encoding, clean_dataset
 from HW2.models.print_results import print_results
 
-N_EPOCHS = 50
+N_EPOCHS = 10
+
 
 
 def create_ncf(
@@ -91,11 +93,13 @@ def create_ncf(
 
     predict_layer = Concatenate()([mf_cat_latent, mlp_vector])
 
-    result = Dense(
-        1, activation="sigmoid", kernel_initializer="lecun_uniform", name="interaction"
+    after_sig = Dense(
+        1, activation="sigmoid", kernel_initializer="lecun_uniform", name="fc"
     )
 
-    output = result(predict_layer)
+    output = after_sig(predict_layer)
+
+    # output_multiplied = tf.keras.layers.Lambda(lambda y:tf.math.multiply(2., y),name='interaction')(output)
 
     model = Model(
         inputs=[user, item],
@@ -173,8 +177,9 @@ if __name__ == '__main__':
 
     sparse_data = manila_data.loc[:,
                   'eshkol diagnosis of manpower_the psychotechnical array':'dedicated track_combat communications officer']
-    sparse_data[sparse_data < 3] = -1
-    sparse_data[sparse_data >= 3] = 1
+    sparse_data[sparse_data < 3] = 1
+    sparse_data[sparse_data > 3] = 3
+    sparse_data[sparse_data == 3] = 2
     sparse_data.fillna(0, inplace=True)
 
     n_users = sparse_data.shape[0]
@@ -183,30 +188,15 @@ if __name__ == '__main__':
     users = manila_data[['mispar_ishi']]
     items = sparse_data.columns.values
 
-    long_all = wide_to_long(sparse_data, [-1, 0, 1])
+    long_all = wide_to_long(sparse_data, [0, 1, 2, 3])
     df_all_long = pd.DataFrame(long_all, columns=["user_id", "item_id", "interaction"])
 
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]],
                                                         df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
 
-    # create extra data for train
-    mispar_ishi_train = userid_to_mispar_ishi(x_train["user_id"], users)
-    dapar_train = get_dapar(x_train["user_id"], manila_data, "dapar")
-    role_train = itemid_to_item_name(x_train["item_id"], items)
-    x_train_ext = pd.DataFrame()
-    x_train_ext["mispar_ishi"] = mispar_ishi_train
-    x_train_ext["dapar"] = dapar_train.values
-    x_train_ext["role"] = role_train
-
-    # create extra data for test
-    mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
-    dapar_test = get_dapar(x_test["user_id"], manila_data, "dapar")
-    role_test = itemid_to_item_name(x_test["item_id"], items)
-    x_test_ext = pd.DataFrame()
-    x_test_ext["mispar_ishi"] = mispar_ishi_test
-    x_test_ext["dapar"] = dapar_test.values
-    x_test_ext["role"] = role_test
+    x_train_ext = get_extra_data_df(x_train,manila_data,users,items)
+    x_test_ext = get_extra_data_df(x_test,manila_data,users,items)
 
 
     full_train = pd.DataFrame(pd.concat([x_train, y_train], axis=1), columns=["user_id", "item_id", "interaction"])
@@ -239,8 +229,10 @@ if __name__ == '__main__':
 
     df_test = pd.DataFrame(full_test, columns=["user_id", "item_id", "interaction"])
     ds_test, _ = make_tf_dataset(df_test, ["interaction"], val_split=0, seed=None)
-    ncf_predictions = round_prediction(ncf_model.predict(ds_test))
-    ncf_train_predictions = round_prediction(ncf_model.predict(ds_train))
+    pred_test = ncf_model.predict(ds_test)
+    ncf_predictions = round_prediction(pred_test)
+    pred_train = ncf_model.predict(ds_train)
+    ncf_train_predictions = round_prediction(pred_train)
     df_test["ncf_predictions"] = ncf_predictions
     df_test.head()
 
