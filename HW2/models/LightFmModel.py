@@ -102,7 +102,7 @@ def get_dapar(mispar_ishi, manila_data, extra_data_col_name):
     return manila_data[extra_data_col_name].iloc[mispar_ishi]
 
 
-def get_extra_data_df():
+def get_extra_data_test_df():
     mispar_ishi_test = userid_to_mispar_ishi(x_test["user_id"], users)
     dapar_test = get_dapar(x_test["user_id"], manila_data, "dapar")
     role_test = itemid_to_item_name(x_test["item_id"], items)
@@ -111,6 +111,17 @@ def get_extra_data_df():
     x_test_ext["dapar"] = dapar_test.values
     x_test_ext["role"] = role_test
     return x_test_ext
+
+
+def get_extra_data_train_df():
+    mispar_ishi_train = userid_to_mispar_ishi(x_train["user_id"], users)
+    dapar_train = get_dapar(x_train["user_id"], manila_data, "dapar")
+    role_train = itemid_to_item_name(x_train["item_id"], items)
+    x_train_ext = pd.DataFrame()
+    x_train_ext["mispar_ishi"] = mispar_ishi_train
+    x_train_ext["dapar"] = dapar_train.values
+    x_train_ext["role"] = role_train
+    return x_train_ext
 
 
 if __name__ == '__main__':
@@ -140,27 +151,14 @@ if __name__ == '__main__':
     x_train, x_test, y_train, y_test = train_test_split(df_all_long[["user_id", "item_id"]], df_all_long[["interaction"]],
                                                         test_size=0.2, random_state=1)
 
-    #create extra data for train
-    mispar_ishi_train = userid_to_mispar_ishi(x_train["user_id"], users)
-    dapar_train = get_dapar(x_train["user_id"], manila_data,"dapar")
-    role_train = itemid_to_item_name(x_train["item_id"], items)
-    x_train_ext = pd.DataFrame()
-    x_train_ext["mispar_ishi"] = mispar_ishi_train
-    x_train_ext["dapar"] = dapar_train.values
-    x_train_ext["role"] = role_train
-    
-    #create extra data for test
-    x_test_ext = get_extra_data_df()
-
+    x_train_ext = get_extra_data_train_df()
+    x_test_ext = get_extra_data_test_df()
     train = pd.concat([x_train, y_train], axis=1)
 
     lightfm_model = LightFM(loss="warp")
     lightfm_model.fit(sparse.coo_matrix( (y_train["interaction"].array.astype(np.int32),
                                           (x_train["user_id"].array.astype(np.int32),
                                            x_train["item_id"].array.astype(np.int32)))), epochs=2000)
-
-
-    #dapar = manila_data[manila_data.iloc()]
 
     predictions = round_prediction(lightfm_model.predict(x_test["user_id"].array.astype(np.int32), x_test["item_id"].array.astype(np.int32)))
     train_predictions = round_prediction(lightfm_model.predict(x_train["user_id"].array.astype(np.int32), x_train["item_id"].array.astype(np.int32)))
