@@ -93,6 +93,7 @@ def print_total_acc(y_pred, y_test, y_train, y_train_pred):
 def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
     print("Accuracy by ranks:")
     for rank in ranks:
+        print('Info for rank: ' + str(rank))
         total_test = len([i for i in y_pred if i == rank])
         correct_test = len([i for i, j in zip(y_pred, y_test) if i == j and i == rank])
         total_train = len([i for i in y_train_pred if i == rank])
@@ -100,8 +101,11 @@ def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
         if total_test != 0:
             print("Accuracy on Test Set for rank {0}: {1} %".format(str(rank), str((correct_test / total_test) * 100)))
         else:
-            print('no results in this rank')
-        print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
+            print('no results in total_test for this rank')
+        if total_train != 0:
+            print("Accuracy on Train Set for rank {0}: {1} %".format(str(rank), str((train_correct / total_train) * 100)))
+        else:
+            print('no results in total_train for this rank')
 
 
 def print_acc_by_dapar_score(y_pred, y_test, y_train, y_train_pred, x_train, x_test):
