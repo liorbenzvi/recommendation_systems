@@ -138,7 +138,7 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_test_d = []
         for i in range(0, len(y_pred)):
             user = x_train["mispar_ishi"].values[i]
-            if user_data["cluster"].values[user-1] == c:
+            if user_data[user_data["mispar_ishi"] == user]['cluster'].values[0] == c:
                 y_pred_d.append(y_pred[i])
                 y_test_d.append(y_test[i])
 
@@ -146,7 +146,7 @@ def print_acc_by_user_cluster(y_pred, y_test, y_train, y_train_pred, x_train, x_
         y_train_d = []
         for i in range(0, len(y_test)):
             user = x_test["mispar_ishi"].values[i]
-            if user_data["cluster"].values[user-1] == c:
+            if user_data[user_data["mispar_ishi"] == user]['cluster'].values[0] == c:
                 y_train_pred_d.append(y_train_pred[i])
                 y_train_d.append(y_train[i])
         print('Accuracy for user cluster: ' + str(c))
