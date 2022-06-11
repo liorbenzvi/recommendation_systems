@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # roles:
     roles_data = pd.read_csv("../csv_files/roles_data/full_roles_data.csv", encoding="UTF-8")
     roles_data = roles_data.fillna(0)
-    add_clusters_to_roles_data(roles_data)
+    # add_clusters_to_roles_data(roles_data)
     n_items = roles_data.shape[0]
     # users:
     users_df = get_full_users_df()
