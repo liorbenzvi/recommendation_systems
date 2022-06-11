@@ -100,7 +100,7 @@ def print_acc_by_class(y_pred, y_test, y_train, y_train_pred):
         train_correct = len([i for i, j in zip(y_train_pred, y_train) if i == j and i == rank])
         if total_test != 0:
             print("Accuracy on Test Set for rank {0}: {1} %".format
-                  (str(rank), str(round(correct_test / total_test) * 100, 2)))
+                  (str(rank), str(round((correct_test / total_test) * 100, 2))))
         else:
             print('no results in total_test for this rank')
         if total_train != 0:
